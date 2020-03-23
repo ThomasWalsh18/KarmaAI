@@ -87,7 +87,14 @@ public class GameHandler : MonoBehaviour
                 case 8:
                     //Extra turn
                     //two or 4 at the same time will make nothing happen, but three will trigger or one 
-                    handler.skipAI = !handler.skipAI;
+                    if (!GameObject.FindGameObjectWithTag("Controller").GetComponent<GameHandler>().pTurn)
+                    {
+                        handler.skipAI = !handler.skipAI;
+                    } else
+                    {
+                        print("Skip Player");
+                        GameObject.FindGameObjectWithTag("Controller").GetComponent<AI>().skipPlayer = true;
+                    }
                     break;
                 case 10:
                     //Make this a funct for when we call the burn for 4 of a kind
@@ -163,7 +170,15 @@ public class GameHandler : MonoBehaviour
         }
         gameBoard.cardsOnTheBoard.Clear();
         gameBoard.changeSize();
-        skipAI = !skipAI;
+        if (GameObject.FindGameObjectWithTag("Controller").GetComponent<GameHandler>().pTurn)
+        {
+            skipAI = !skipAI;
+        }
+        else
+        {
+            print("Skip Player");
+            GameObject.FindGameObjectWithTag("Controller").GetComponent<AI>().skipPlayer = true;
+        }
     }
     public void LockedControl()
     {
@@ -272,7 +287,6 @@ public class GameHandler : MonoBehaviour
         updateHandZPos(Locations[start]);
         updateHandZPos(Locations[finish]);
     }
-
     void addCardGameObject(Deck deck)
     {
         List<Cards> temp = new List<Cards>();
@@ -340,6 +354,7 @@ public class GameHandler : MonoBehaviour
             Locations[(int)PlayerController.HandLocations.pBot].cardsInHand[i].card.GetComponent<CardFlip>().flipped = true;
             Locations[(int)PlayerController.HandLocations.pBot].cardsInHand[i].card.GetComponent<CardFlip>().locked = true;
             Locations[(int)PlayerController.HandLocations.eBot].cardsInHand[i].card.GetComponent<CardFlip>().flipped = true;
+            Locations[(int)PlayerController.HandLocations.eHand].cardsInHand[i].bottomCard = false;
             Locations[(int)PlayerController.HandLocations.eTop].cardsInHand[i].bottomCard = true;
             Locations[(int)PlayerController.HandLocations.eBot].cardsInHand[i].bottomCard = true;
             Locations[(int)PlayerController.HandLocations.pTop].cardsInHand[i].bottomCard = true;
@@ -377,6 +392,17 @@ public class GameHandler : MonoBehaviour
         }
         ReadyButton.SetActive(false);
         PickUpButton.SetActive(true);
+
+        float rnd = Random.Range(0, 101);
+        //Random Who goes first
+        if (rnd <= 50)
+        {
+            pTurn = false;
+        }
+        else
+        {
+            pTurn = true;
+        }
     }
 
     public void Start()
@@ -412,13 +438,9 @@ public class GameHandler : MonoBehaviour
         while (deckStorage.deck.Count > 52 - drawAmmount)
         {
             //deckStorage.deck[0].card.SetActive(false);
-            DrawToHand(deckStorage.deck[0], Locations[(int)PlayerController.HandLocations.eHand], (int)PlayerController.HandLocations.eHand);
+            DrawToHand(deckStorage.deck[0], Locations[(int)PlayerController.HandLocations.pHand], (int)PlayerController.HandLocations.pHand);
         }
-        ////game.cardsOnTheBoard.Add(AC);
-        //for(int i = 0; i < burnPileCode.cardsInHand.Count; i++)
-        //{
-        //    burnPileCode.cardsInHand[i].card.SetActive(false);
-        //}
+
     }
 
     void Update()

@@ -14,6 +14,8 @@ public class AI : MonoBehaviour
         public int playersHand;
         public int deckSize;
 
+        public bool evaluated = false;
+
         public boardState(GameHandler.Hand eHand, GameHandler.Hand eTop, GameHandler.Hand eBot, int pHandSize, Pile.Board currentBoard, int deck)
         {
             currentTop = eTop;
@@ -30,9 +32,25 @@ public class AI : MonoBehaviour
         }
         public int evaluate()
         {
+            int evaluation = 0;
             //evaluate the current board state to give the node its value
-            
-            return 0;
+            //Really simple to begin with
+            if(gameBoard.cardsOnTheBoard.Count == 0)
+            {
+                evaluation++;
+            } else
+            {
+                if (gameBoard.cardsOnTheBoard[gameBoard.cardsOnTheBoard.Count - 1].value % 2 == 0)
+                {
+                    evaluation++;
+                }
+                else
+                {
+                    evaluation--;
+                }
+            }
+            evaluated = true;
+            return evaluation;
         }
     }
 
@@ -64,6 +82,7 @@ public class AI : MonoBehaviour
         public int value;
         public boardState currentBoard;
         public moveList moveChoice;
+        public moveList mostValuableMove;
         public node previous;
         public List<node> children = new List<node>();
     }
@@ -81,6 +100,9 @@ public class AI : MonoBehaviour
     private GameHandler gameController;
     public int maxDepth;
     public Pile pile;
+    public bool skipPlayer = false;
+    bool started = false;
+    bool go = false;
 
     void Start()
     {
@@ -90,8 +112,15 @@ public class AI : MonoBehaviour
 
     void EndTurn()
     {
-        gameController.pTurn = true;
-        gameController.LockedControl();
+        if (skipPlayer)
+        {
+            gameController.pTurn = false;
+            skipPlayer = false;
+        } else
+        {
+            gameController.pTurn = true;
+            gameController.LockedControl();
+        }
         gameController.skipAI = false;
     }
     boardState makeBoardState(PlayerController.HandLocations hand, moveList move, int howMany, boardState current, Pile.Board gameBoard)
@@ -299,33 +328,225 @@ public class AI : MonoBehaviour
                 }
             }
             depth = depth + 1;
-            addAllMoves(depth, gameTree, currentLevel.children[0], !OppsTurn);
+            if(currentLevel.children.Count == 0) // ran out of moves
+            {
+
+            } else
+            {
+                addAllMoves(depth, gameTree, currentLevel.children[0], !OppsTurn);
+            }
         }
 
     }
 
+    void addEvals(node node)
+    {
+        for(int i=0; i < node.children.Count; i++)
+        {
+            if(node.children[i].children.Count != 0)
+            {
+                addEvals(node.children[i]);
+            }
+            else
+            {
+                node.children[i].value = node.children[i].currentBoard.evaluate();
+                
+            }
+        }  
+    }
+
+    void findHighestOrLowest(node node)
+    {
+        //lowest
+        int highestOrLowest = 0;
+        for (int i = 0; i < node.children.Count; i++)
+        {
+            if (node.playersMove)
+            {
+                if (node.children[highestOrLowest].value > node.children[i].value)
+                {
+                    highestOrLowest = i;
+                }
+
+            } else
+            {
+                if (node.children[highestOrLowest].value < node.children[i].value)
+                {
+                    highestOrLowest = i;
+                }
+            }
+        }
+        node.value = node.children[highestOrLowest].value;
+        node.currentBoard.evaluated = true;
+        node.mostValuableMove = node.children[highestOrLowest].moveChoice;
+    }
+
+    void fillInTheRestOfTheTree(node node)
+    {
+        for(int i = 0; i < node.children.Count; i++)
+        {
+            if (!node.children[i].currentBoard.evaluated)
+            {
+                fillInTheRestOfTheTree(node.children[i]);
+            }
+            else
+            {
+                //go back up a node, and call another function
+                findHighestOrLowest(node);
+            }
+        }
+    }
+
+    void doMove(moveList bestMove)
+    {
+        List<GameHandler.Cards> Selected = new List<GameHandler.Cards>();
+        int moveValue = 0;
+        bool pickUp = false;
+        switch (bestMove)
+        {
+            case moveList.Ace:
+                moveValue = 14;
+                break;
+            case moveList.Two:
+                moveValue = 0;
+                break;
+            case moveList.Three:
+                moveValue = 3;
+                break;
+            case moveList.Four:
+                moveValue = 4;
+                break;
+            case moveList.Five:
+                moveValue = 5;
+                break;
+            case moveList.Six:
+                moveValue = 6;
+                break;
+            case moveList.Seven:
+                moveValue = 7;
+                break;
+            case moveList.Eight:    
+                moveValue = 8;
+                break;
+            case moveList.Nine:
+                moveValue = 9;
+                break;
+            case moveList.Ten:
+                moveValue = 10;
+                break;
+            case moveList.Jack:
+                moveValue = 11;
+                break;
+            case moveList.Queen:
+                moveValue = 12;
+                break;
+            case moveList.King:
+                moveValue = 13;
+                break;
+            case moveList.PickUpPile:
+                if (gameController.Locations[(int)PlayerController.HandLocations.eHand].cardsInHand.Count == 0)
+                {
+                    if (gameController.Locations[(int)PlayerController.HandLocations.eTop].cardsInHand.Count != 0)
+                    {
+                        pile.bottomCardPlay(gameController.Locations[(int)PlayerController.HandLocations.eTop].cardsInHand[0]);
+                    }
+                }
+                pile.pickUpPile();
+                pickUp = true;
+                EndTurn();
+                break;
+        }
+        if (!pickUp)
+        {
+            int selected = 0;
+            if (gameController.Locations[(int)PlayerController.HandLocations.eHand].cardsInHand.Count != 0) // still cards in hand
+            {
+                selected = (int)PlayerController.HandLocations.eHand;
+            }
+            else if (gameController.Locations[(int)PlayerController.HandLocations.eTop].cardsInHand.Count != 0)
+            {
+                //there is still cards on top
+                selected = (int)PlayerController.HandLocations.eTop;
+            }
+
+            for (int i = 0; i < gameController.Locations[selected].cardsInHand.Count; i++)
+            {
+                if (gameController.Locations[selected].cardsInHand[i].value == moveValue)
+                {
+                    Selected.Add(gameController.Locations[selected].cardsInHand[i]);
+                    if (gameController.Locations[selected].cardsInHand[i].value == 8)
+                    {
+                        break; // make it play one eight at a time
+                    }
+                }
+            }
+            pile.AIChoice(Selected);
+        }
+    }
+    IEnumerator Wait()
+    {
+        if (!started)
+        {
+            print("Thinkning");
+            yield return new WaitForSeconds(0.5f);
+            go = true;
+            started = false;
+        }
+    }
     void AITrun()
     {
-        print("Thinkning");
-        //Save the board state
-        currentBoardState = new boardState(
-            gameController.Locations[(int)PlayerController.HandLocations.eHand].clone(gameController.Locations[(int)PlayerController.HandLocations.eHand].cardsInHand),
-            gameController.Locations[(int)PlayerController.HandLocations.eTop].clone(gameController.Locations[(int)PlayerController.HandLocations.eTop].cardsInHand),
-            gameController.Locations[(int)PlayerController.HandLocations.eBot].clone(gameController.Locations[(int)PlayerController.HandLocations.eBot].cardsInHand),
-            gameController.Locations[(int)PlayerController.HandLocations.pHand].cardsInHand.Count,
-            pile.gameBoard.clone(pile.gameBoard.cardsOnTheBoard),
-            gameController.deckStorage.deck.Count
-            );
-        //Make a new binary tree with all the different moves possible to the player, and enemy for however long the recursive value is
-        node root = new node(false, null, currentBoardState, moveList.empty);
-        tree gameTree = new tree(root);
-        addAllMoves(0, gameTree, gameTree.Root, false);
-        //Evaluate all the different moves of the bottom level
-        //Then fill out the other moves based on the children
-        //Chose a move
-        //Do the move
-        //End turn
-        EndTurn();
+        if (!go)
+        {
+            StartCoroutine(Wait());// Add thinking time
+            started = true;
+        }
+        if (go)
+        {
+            go = false;
+            if(gameController.Locations[(int)PlayerController.HandLocations.eHand].cardsInHand.Count == 0 && gameController.Locations[(int)PlayerController.HandLocations.eTop].cardsInHand.Count == 0)
+            {
+                if (gameController.Locations[(int)PlayerController.HandLocations.eBot].cardsInHand.Count == 0)
+                {
+                    print("AI WON");
+                }
+                else
+                {
+                    //chose a random card, from 0 to count and play that card
+                    //New function
+                    int rnd = Random.Range(0, gameController.Locations[(int)PlayerController.HandLocations.eBot].cardsInHand.Count + 1);
+                    List<GameHandler.Cards> Rand = new List<GameHandler.Cards>();
+                    Rand.Add(gameController.Locations[(int)PlayerController.HandLocations.eBot].cardsInHand[rnd]);
+                    pile.AIChoice(Rand);
+                    EndTurn();
+                }
+            } else
+            {
+                //Save the board state
+                currentBoardState = new boardState(
+                    gameController.Locations[(int)PlayerController.HandLocations.eHand].clone(gameController.Locations[(int)PlayerController.HandLocations.eHand].cardsInHand),
+                    gameController.Locations[(int)PlayerController.HandLocations.eTop].clone(gameController.Locations[(int)PlayerController.HandLocations.eTop].cardsInHand),
+                    gameController.Locations[(int)PlayerController.HandLocations.eBot].clone(gameController.Locations[(int)PlayerController.HandLocations.eBot].cardsInHand),
+                    gameController.Locations[(int)PlayerController.HandLocations.pHand].cardsInHand.Count,
+                    pile.gameBoard.clone(pile.gameBoard.cardsOnTheBoard),
+                    gameController.deckStorage.deck.Count
+                    );
+                //Make a new binary tree with all the different moves possible to the player, and enemy for however long the recursive value is
+                node root = new node(false, null, currentBoardState, moveList.empty);
+                tree gameTree = new tree(root);
+                addAllMoves(0, gameTree, gameTree.Root, false);
+                //Evaluate all the different moves of the bottom level
+                addEvals(gameTree.Root);
+                //Then fill out the other moves based on the children
+                for(int i = 0; i < maxDepth; i++)
+                {
+                    fillInTheRestOfTheTree(gameTree.Root);
+                }
+                //Chose a move, Do the move
+                doMove(gameTree.Root.mostValuableMove);
+                //End turn
+                EndTurn();
+            }
+        }
     }
 
     public void updateHandZPos(GameHandler.Hand hand)

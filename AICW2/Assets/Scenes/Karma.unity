@@ -685,17 +685,17 @@ PrefabInstance:
     - target: {fileID: 703942695708576653, guid: a559c4e8fbcc1a34aab05f3fbc3db922,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 36.64
+      value: 36.6
       objectReference: {fileID: 0}
     - target: {fileID: 703942695708576653, guid: a559c4e8fbcc1a34aab05f3fbc3db922,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 24.57
+      value: 8.8
       objectReference: {fileID: 0}
     - target: {fileID: 703942695708576653, guid: a559c4e8fbcc1a34aab05f3fbc3db922,
         type: 3}
       propertyPath: m_SizeDelta.y
-      value: 345.13
+      value: 285.9
       objectReference: {fileID: 0}
     - target: {fileID: 1848515621548426784, guid: a559c4e8fbcc1a34aab05f3fbc3db922,
         type: 3}
@@ -937,6 +937,11 @@ PrefabInstance:
       propertyPath: burnPile
       value: 
       objectReference: {fileID: 452855013531768275}
+    - target: {fileID: 3564574681424326133, guid: cdaab5a1b24ed964f932e1869c69973c,
+        type: 3}
+      propertyPath: drawAmmount
+      value: 33
+      objectReference: {fileID: 0}
     - target: {fileID: 3564574681424326138, guid: cdaab5a1b24ed964f932e1869c69973c,
         type: 3}
       propertyPath: m_Name

@@ -8,6 +8,7 @@ public class Pile : MonoBehaviour
     public PlayerController selected;
     public GameHandler gameController;
     public GameObject Text;
+    public List<GameHandler.Cards> aiSelected = new List<GameHandler.Cards>();
     public List<int> SequenceSpecial = new List<int>();
     public class Board
     {
@@ -56,11 +57,15 @@ public class Pile : MonoBehaviour
     }
     public void pickUpPile()
     {
+        print("I cant go, I will pick up");
         for (int i = 0; i < gameBoard.cardsOnTheBoard.Count; i++)
         {
             gameBoard.cardsOnTheBoard[i].value = gameBoard.cardsOnTheBoard[i].card.GetComponent<CardFlip>().value;
-            gameBoard.cardsOnTheBoard[i].card.GetComponent<BoxCollider2D>().enabled = true;
-            gameController.DrawToHand(gameBoard.cardsOnTheBoard[i], gameController.Locations[(int)PlayerController.HandLocations.pHand], (int)PlayerController.HandLocations.pHand); ;
+            gameController.DrawToHand(gameBoard.cardsOnTheBoard[i], gameController.Locations[(int)PlayerController.HandLocations.eHand], (int)PlayerController.HandLocations.eHand);
+        }
+        for(int i =0; i < gameController.Locations[(int)PlayerController.HandLocations.eHand].cardsInHand.Count; i++)
+        {
+            gameController.Locations[(int)PlayerController.HandLocations.eHand].cardsInHand[i].card.GetComponent<CardFlip>().locked = true;
         }
         gameBoard.cardsOnTheBoard.Clear();
         changeSize();
@@ -110,7 +115,7 @@ public class Pile : MonoBehaviour
         //Visually show the ammount of cards on the board
         gameBoard.changeSize();
         //End the turn if selected only has one card in it otherwise there is more to come
-        if (selected.Selected[selected.Selected.Count-1] == card)
+        if (selected.Selected.Count != 0 && selected.Selected[selected.Selected.Count-1] == card || aiSelected.Count != 0 && aiSelected[aiSelected.Count-1] == card)
         {
             //before ending the trun check to see if the previous 4 cards are the same value, if so burn
             if(gameBoard.cardsOnTheBoard.Count >= 4)
@@ -198,17 +203,25 @@ public class Pile : MonoBehaviour
         GameHandler.SpecialCards temp = new GameHandler.SpecialCards(card.value, card.special);
         temp.Effect(gameBoard,0);
     }
-    void bottomCardPlay(GameHandler.Cards card)
+    public void bottomCardPlay(GameHandler.Cards card)
     {
         card.card.GetComponent<CardFlip>().flipped = false;
         card.bottomCard = false;
-        gameController.Locations[(int)PlayerController.HandLocations.pTop].cardsInHand.Remove(card);
-        gameController.Locations[(int)PlayerController.HandLocations.pBot].cardsInHand.Remove(card);
-        gameController.Locations[(int)PlayerController.HandLocations.eTop].cardsInHand.Remove(card);
-        gameController.Locations[(int)PlayerController.HandLocations.eBot].cardsInHand.Remove(card);
-        gameController.DrawToHand(card, gameController.Locations[(int)PlayerController.HandLocations.pHand], (int)PlayerController.HandLocations.pHand);
-        pickUpPile();
-        gameController.endTurn();
+        if(card.location == 5 || card.location == 4)
+        {
+            gameController.Locations[(int)PlayerController.HandLocations.eTop].cardsInHand.Remove(card);
+            gameController.Locations[(int)PlayerController.HandLocations.eBot].cardsInHand.Remove(card);
+            gameController.DrawToHand(card, gameController.Locations[(int)PlayerController.HandLocations.eHand], (int)PlayerController.HandLocations.eHand);
+            pickUpPile();
+            
+        } else
+        {
+            gameController.Locations[(int)PlayerController.HandLocations.pTop].cardsInHand.Remove(card);
+            gameController.Locations[(int)PlayerController.HandLocations.pBot].cardsInHand.Remove(card);
+            gameController.DrawToHand(card, gameController.Locations[(int)PlayerController.HandLocations.pHand], (int)PlayerController.HandLocations.pHand);
+            pickUpPileButton();
+            gameController.endTurn();
+        }
     }
     void SequenceCheck(GameHandler.Cards card)
     {
@@ -310,6 +323,19 @@ public class Pile : MonoBehaviour
             }
         }
     }
+    public void AIChoice(List<GameHandler.Cards> Selected)
+    {
+        aiSelected = Selected;
+        if (Selected.Count != 0)
+        {
+            for (int i = 0; i < Selected.Count; i++)
+            {
+                placeToPile(Selected[i]);
+            }
+            Selected.Clear();
+        }
+    }
+
     void OnMouseDown()
     {
        if(gameController.PlayerReady != false)
