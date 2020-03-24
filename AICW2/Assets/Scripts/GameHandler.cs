@@ -170,7 +170,7 @@ public class GameHandler : MonoBehaviour
         }
         gameBoard.cardsOnTheBoard.Clear();
         gameBoard.changeSize();
-        if (GameObject.FindGameObjectWithTag("Controller").GetComponent<GameHandler>().pTurn)
+        if (!GameObject.FindGameObjectWithTag("Controller").GetComponent<GameHandler>().pTurn)
         {
             skipAI = !skipAI;
         }

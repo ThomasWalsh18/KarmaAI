@@ -160,3 +160,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxDepth: 3
   pile: {fileID: 0}
+  skipPlayer: 0
