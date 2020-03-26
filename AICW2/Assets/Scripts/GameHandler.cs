@@ -48,6 +48,7 @@ public class GameHandler : MonoBehaviour
         }
         public virtual void Effect(Pile.Board gameBoard, int depth) {}
         public int value;
+        public int Startvalue;
         public bool special;
         public GameObject card;
         public int location;

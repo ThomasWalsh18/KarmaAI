@@ -202,7 +202,7 @@ public class Pile : MonoBehaviour
                     }
                 }
             }
-                gameController.endTurn();
+            gameController.endTurn();
         }
     }
     void specialCardPlay(GameHandler.Cards card)
@@ -227,7 +227,6 @@ public class Pile : MonoBehaviour
             gameController.Locations[(int)PlayerController.HandLocations.pBot].cardsInHand.Remove(card);
             gameController.DrawToHand(card, gameController.Locations[(int)PlayerController.HandLocations.pHand], (int)PlayerController.HandLocations.pHand);
             pickUpPileButton();
-            gameController.endTurn();
         }
     }
     void SequenceCheck(GameHandler.Cards card)

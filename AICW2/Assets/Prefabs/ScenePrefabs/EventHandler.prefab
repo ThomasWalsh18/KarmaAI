@@ -118,7 +118,6 @@ MonoBehaviour:
   controller: {fileID: 0}
   deckVisual: {fileID: 0}
   howManyLeft: {fileID: 0}
-  startButton: {fileID: 0}
   ReadyButton: {fileID: 0}
   PickUpButton: {fileID: 0}
   BurnCanvas: {fileID: 0}
