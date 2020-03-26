@@ -69,6 +69,13 @@ public class Pile : MonoBehaviour
         }
         gameBoard.cardsOnTheBoard.Clear();
         changeSize();
+        if(gameController.pTurn == true)
+        {
+            gameController.endTurn();
+        } else
+        {
+            //Ai end turn
+        }
     }
     public void pickUpPileButton()
     {
@@ -142,11 +149,11 @@ public class Pile : MonoBehaviour
                     }
                     if (howManyThrees == 0)
                     {
-                        gameController.burn(gameBoard);
+                        gameController.burn(gameBoard, false);
                     } else if (howManyThrees == 4 && maybeBurn.Count == 0)
                     {
                         //it is just four threes
-                        gameController.burn(gameBoard);
+                        gameController.burn(gameBoard, false);
                     }
                     else
                     {
@@ -186,7 +193,7 @@ public class Pile : MonoBehaviour
                                     print(maybeBurn[i].value);
                                 }
                                 print("Special Burn");
-                                gameController.burn(gameBoard);
+                                gameController.burn(gameBoard, false);
                             }
                         } else
                         {
@@ -195,7 +202,7 @@ public class Pile : MonoBehaviour
                     }
                 }
             }
-            gameController.endTurn();
+                gameController.endTurn();
         }
     }
     void specialCardPlay(GameHandler.Cards card)
@@ -235,7 +242,7 @@ public class Pile : MonoBehaviour
             {
                 placeSubFunct(card); // can be played 
                 if (card.special)
-                {
+                { 
                     specialCardPlay(card);
                 }
             }
@@ -286,7 +293,14 @@ public class Pile : MonoBehaviour
     {
         if (gameBoard.cardsOnTheBoard.Count == 0) { // if there are no cards on the board simply add the card
             placeSubFunct(card);
-            if (card.special)
+            if (card.value == 10)
+            {
+                if (selected.Selected.Count != 0 && selected.Selected[selected.Selected.Count - 1] == card || aiSelected.Count != 0 && aiSelected[aiSelected.Count - 1] == card) // if its the last one
+                {
+                    specialCardPlay(card);
+                }
+            }
+            else
             {
                 specialCardPlay(card);
             }
@@ -307,7 +321,17 @@ public class Pile : MonoBehaviour
                 {
                     // can play it any where and trigger the effect
                     placeSubFunct(card);
-                    specialCardPlay(card);
+                    if (card.value == 10)
+                    {
+                        if (selected.Selected.Count != 0 && selected.Selected[selected.Selected.Count - 1] == card || aiSelected.Count != 0 && aiSelected[aiSelected.Count - 1] == card) // if its the last one
+                        {
+                            specialCardPlay(card);
+                        }
+                    }
+                    else
+                    {
+                        specialCardPlay(card);
+                    }
                 }
                 else
                 {

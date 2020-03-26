@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameHandler : MonoBehaviour
 {
@@ -17,7 +18,6 @@ public class GameHandler : MonoBehaviour
 
     public GameObject deckVisual;
     public GameObject howManyLeft;
-    public GameObject startButton;
     public GameObject ReadyButton;
     public GameObject PickUpButton;
 
@@ -97,9 +97,8 @@ public class GameHandler : MonoBehaviour
                     }
                     break;
                 case 10:
-                    //Make this a funct for when we call the burn for 4 of a kind
                     //Trigger Extra turn
-                    handler.burn(gameBoard);
+                    handler.burn(gameBoard, true);
                     break;
             }
         }
@@ -160,7 +159,7 @@ public class GameHandler : MonoBehaviour
         public int spacing = 0;
         public List<Cards> cardsInHand = new List<Cards>();
     }
-    public void burn(Pile.Board gameBoard)
+    public void burn(Pile.Board gameBoard, bool ten)
     {
         for (int i = 0; i < gameBoard.cardsOnTheBoard.Count; i++)
         {
@@ -170,14 +169,28 @@ public class GameHandler : MonoBehaviour
         }
         gameBoard.cardsOnTheBoard.Clear();
         gameBoard.changeSize();
-        if (!GameObject.FindGameObjectWithTag("Controller").GetComponent<GameHandler>().pTurn)
+        if (ten)
         {
-            skipAI = !skipAI;
-        }
-        else
+            if (!pTurn)
+            {
+                skipAI = !skipAI;
+            }
+            else
+            {
+                print("Skip Player");
+                GameObject.FindGameObjectWithTag("Controller").GetComponent<AI>().skipPlayer = true;
+            }
+        } else
         {
-            print("Skip Player");
-            GameObject.FindGameObjectWithTag("Controller").GetComponent<AI>().skipPlayer = true;
+            if (pTurn)
+            {
+                skipAI = !skipAI;
+            }
+            else
+            {
+                print("Skip Player");
+                GameObject.FindGameObjectWithTag("Controller").GetComponent<AI>().skipPlayer = true;
+            }
         }
     }
     public void LockedControl()
@@ -189,6 +202,7 @@ public class GameHandler : MonoBehaviour
                 if (Locations[(int)PlayerController.HandLocations.pBot].cardsInHand.Count == 0)// no cards left at all
                 {
                     print("Win State"); //player has won
+                    SceneManager.LoadScene("PlayerWon");
                 }
                 else
                 {
@@ -232,6 +246,7 @@ public class GameHandler : MonoBehaviour
             print("The Deck is empty");
         }
         // swap turns 
+      
         pTurn = !pTurn;
         LockedControl();
     }
@@ -369,7 +384,6 @@ public class GameHandler : MonoBehaviour
             Locations[(int)PlayerController.HandLocations.eTop].cardsInHand[i].card.GetComponent<CardFlip>().locked = true;
             Locations[(int)PlayerController.HandLocations.eBot].cardsInHand[i].card.GetComponent<CardFlip>().locked = true;
         }
-        startButton.SetActive(false);
         ReadyButton.SetActive(true);
     }
     public void Ready()
@@ -440,7 +454,7 @@ public class GameHandler : MonoBehaviour
             //deckStorage.deck[0].card.SetActive(false);
             DrawToHand(deckStorage.deck[0], Locations[(int)PlayerController.HandLocations.pHand], (int)PlayerController.HandLocations.pHand);
         }
-
+        startGame();
     }
 
     void Update()

@@ -121,12 +121,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &41381093 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 209543942687340008, guid: a559c4e8fbcc1a34aab05f3fbc3db922,
-    type: 3}
-  m_PrefabInstance: {fileID: 209543942721624333}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &496119164 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 209543942798308465, guid: a559c4e8fbcc1a34aab05f3fbc3db922,
@@ -445,7 +439,7 @@ PrefabInstance:
     - target: {fileID: 209543944061936592, guid: a559c4e8fbcc1a34aab05f3fbc3db922,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -56.916718
+      value: -56.916748
       objectReference: {fileID: 0}
     - target: {fileID: 209543944061936623, guid: a559c4e8fbcc1a34aab05f3fbc3db922,
         type: 3}
@@ -876,7 +870,7 @@ PrefabInstance:
         type: 3}
       propertyPath: startButton
       value: 
-      objectReference: {fileID: 41381093}
+      objectReference: {fileID: 0}
     - target: {fileID: 3564574681424326133, guid: cdaab5a1b24ed964f932e1869c69973c,
         type: 3}
       propertyPath: ReadyButton
@@ -940,7 +934,7 @@ PrefabInstance:
     - target: {fileID: 3564574681424326133, guid: cdaab5a1b24ed964f932e1869c69973c,
         type: 3}
       propertyPath: drawAmmount
-      value: 33
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3564574681424326138, guid: cdaab5a1b24ed964f932e1869c69973c,
         type: 3}

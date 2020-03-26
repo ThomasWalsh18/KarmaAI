@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class AI : MonoBehaviour
 {
@@ -10,45 +11,128 @@ public class AI : MonoBehaviour
         public GameHandler.Hand currentHand;
         public GameHandler.Hand currentTop;
         public GameHandler.Hand currentBot;
-        public Pile.Board gameBoard;
-        public int playersHand;
-        public int deckSize;
 
+        public int playersHand;
+        public int playersTop;
+        public int playersBottom;
+        public Pile.Board gameBoard;
+        public int deckSize;
+        public moveList Move;
         public bool evaluated = false;
 
-        public boardState(GameHandler.Hand eHand, GameHandler.Hand eTop, GameHandler.Hand eBot, int pHandSize, Pile.Board currentBoard, int deck)
+        public boardState(GameHandler.Hand eHand, GameHandler.Hand eTop, GameHandler.Hand eBot, int pHand, int pTop, int pBot, Pile.Board currentBoard, int deck, moveList lastMove)
         {
             currentTop = eTop;
             currentBot = eBot;
             currentHand = eHand;
-            playersHand = pHandSize;
+            playersHand = pHand;
+            playersTop = pTop;
+            playersBottom = pBot;
             gameBoard = currentBoard;
             deckSize = deck;
+            Move = lastMove;
         }
-        public boardState clone(GameHandler.Hand Hand, GameHandler.Hand Top, GameHandler.Hand Bot, int HandSize, Pile.Board Board, int Deck)
+        public boardState clone(GameHandler.Hand Hand, GameHandler.Hand Top, GameHandler.Hand Bot, int pHand, int pTop, int pBot, Pile.Board Board, int Deck, moveList lastMove)
         {
-            boardState temp = new boardState(Hand, Top, Bot, HandSize, Board, Deck);
+            boardState temp = new boardState(Hand, Top, Bot, pHand, pTop, pBot, Board, Deck, lastMove);
             return temp;
         }
+
+        int defensive(GameHandler.Hand hand, int evalue, moveList actualMove)
+        {
+            int lowestVal = int.MaxValue;
+            for (int i = 0; i < hand.cardsInHand.Count; i++)
+            {
+                if (hand.cardsInHand[i] != null)
+                {
+                    if (hand.cardsInHand[i].value < lowestVal)
+                    {
+                        lowestVal = hand.cardsInHand[i].value;
+                    }
+                    if (hand.cardsInHand[i].special)
+                    {
+                        if (hand.cardsInHand[i].value == 7 || hand.cardsInHand[i].value == 8)
+                        {
+                            evalue -= (14 - hand.cardsInHand[i].value);
+                        }
+                        else
+                        {
+                            evalue += 30;
+                        }
+                    }
+                    else if (hand.cardsInHand[i].value < 11)
+                    {
+                        evalue -= (14 - hand.cardsInHand[i].value);
+                    }
+                    else
+                    {
+                        evalue += (14 + hand.cardsInHand[i].value);
+                    }
+                } else
+                {
+                    //Random cards get highly rewarded, encouraging the playing of multiple cards
+                    lowestVal = (int)Move;
+                    evalue += 100;
+                }
+            }
+            if((int)actualMove == lowestVal)
+            {
+                //Actually playing the lowest card in the hand
+                evalue += 150;
+            }
+            return evalue;
+        }
+
         public int evaluate()
         {
             int evaluation = 0;
             //evaluate the current board state to give the node its value
-            //Really simple to begin with
-            if(gameBoard.cardsOnTheBoard.Count == 0)
+            //Using a very small finate state machine to decide if the AI should be defensive or aggressive
+            //To decide the current state the AI will look at the ammount of cards in the pile
+            //And the more cards there are the less likly the AI is to be defensive
+            //This is because as the pile gets larger, the less risky anyone would want to become
+            if(Move != moveList.PickUpPile)
             {
-                evaluation++;
-            } else
-            {
-                if (gameBoard.cardsOnTheBoard[gameBoard.cardsOnTheBoard.Count - 1].value % 2 == 0)
+                int rnd = Random.Range(0, 50); //+ (gameBoard.cardsOnTheBoard.Count * 2));
+                if (rnd <= 50)
                 {
-                    evaluation++;
+                    print("Defence " + rnd);
+                    //Defensive
+                    //Values getting rid of lower costed cards, so ending the turn with lower costed cards will take points away
+                    //But ending the turn with higher costed points will earn more points
+                    if (currentHand.cardsInHand.Count != 0)
+                    {
+                        evaluation = defensive(currentHand, evaluation, Move);
+                    }
+                    else if (currentTop.cardsInHand.Count != 0)
+                    {
+                        evaluation = defensive(currentTop, evaluation, Move);
+                    }
+                    else
+                    {
+                        //We are on the bottom and any move is random so cant evaluate
+
+                    }
                 }
                 else
                 {
-                    evaluation--;
+                    //Aggressive
+                    //Values getting rid of higher costed cards, however it needs to play responsible so it can still play next time
+                    //Will use 3's, 2's, and 10's
+                    //Value playing a big number gap between the last two cards for example playing a jack on a 5 will get 6 points
+                    //However if the AI doesnt have something to back that up with or any null cards (as these can be anything) points will be taken away 
+                    print("Aggro " + rnd);
                 }
             }
+            if (currentHand.cardsInHand.Count != 0 && playersHand == 0)
+            {
+                //If we have no cards left but the player does then we lose points
+                evaluation-= currentHand.cardsInHand.Count;
+            }
+            
+            //Add the players hand to the point value, this means we value the player picking up more cards
+            evaluation += playersHand;
+
             evaluated = true;
             return evaluation;
         }
@@ -116,7 +200,8 @@ public class AI : MonoBehaviour
         {
             gameController.pTurn = false;
             skipPlayer = false;
-        } else
+        }
+        else
         {
             gameController.pTurn = true;
             gameController.LockedControl();
@@ -130,21 +215,29 @@ public class AI : MonoBehaviour
         GameHandler.Hand tempBot = current.currentBot.clone(current.currentBot.cardsInHand);
 
         GameHandler.Hand affected = null;
-
+        int tempPHandSize = current.playersHand;
+        bool PlayersTurn = false;
         if (hand == PlayerController.HandLocations.eHand) // using reference types to my advantage
         {
             affected = tempHand;
         }
-        else if(hand == PlayerController.HandLocations.eTop)
+        else if (hand == PlayerController.HandLocations.eTop)
         {
             affected = tempTop;
         }
-        else if(hand == PlayerController.HandLocations.eBot)
+        else if (hand == PlayerController.HandLocations.eBot)
         {
             affected = tempBot;
-        } else
+        }
+        else if(hand == PlayerController.HandLocations.pHand)
         {
-            print("Wrong Enum");
+            PlayersTurn = true;
+            if(move != moveList.PickUpPile)
+            {
+                GameHandler.Hand playersOptons = playersTurn(gameBoard);
+                affected = playersOptons.clone(playersOptons.cardsInHand);
+            }
+            tempPHandSize--;
         }
 
         int newDeckSize = current.deckSize;
@@ -154,7 +247,7 @@ public class AI : MonoBehaviour
         {
             for (int i = 0; i < affected.cardsInHand.Count; i++)
             {
-                if(affected.cardsInHand[i] != null) // to check the new cards that we drew
+                if (affected.cardsInHand[i] != null) // to check the new cards that we drew
                 {
                     if (checker != howMany)
                     {
@@ -164,9 +257,9 @@ public class AI : MonoBehaviour
                             switch (affected.cardsInHand[i].value)
                             {
                                 case 3:
-                                    if(newBoard.cardsOnTheBoard.Count < 1)
+                                    if (newBoard.cardsOnTheBoard.Count < 1)
                                     {
-                                        newBoard.cardsOnTheBoard[newBoard.cardsOnTheBoard.Count - 1].value = 
+                                        newBoard.cardsOnTheBoard[newBoard.cardsOnTheBoard.Count - 1].value =
                                             newBoard.cardsOnTheBoard[newBoard.cardsOnTheBoard.Count - 2].value;
                                     }
                                     break;
@@ -198,103 +291,251 @@ public class AI : MonoBehaviour
                     // remove the null card? or just dont do anything?
                 }
             }
-        } else
+        }
+        else
         {
             //pick up pile 
+            if (!PlayersTurn)
+            {
+                tempPHandSize += newBoard.cardsOnTheBoard.Count +1;
+            }
             for (int i = 0; i < newBoard.cardsOnTheBoard.Count; i++)
             {
-                affected.cardsInHand.Add(newBoard.cardsOnTheBoard[0]);
+                if (!PlayersTurn)
+                {
+                } else
+                {
+                    affected.cardsInHand.Add(newBoard.cardsOnTheBoard[0]);
+                }
                 newBoard.cardsOnTheBoard.Remove(newBoard.cardsOnTheBoard[0]);
             }
         }
-       
+
         GameHandler.Hand newEHand = tempHand.clone(tempHand.cardsInHand);
         GameHandler.Hand newETop = tempTop.clone(tempTop.cardsInHand);
         GameHandler.Hand newEBot = tempBot.clone(tempBot.cardsInHand);
-
-        boardState temp = new boardState(newEHand, newETop, newEBot, current.playersHand, newBoard, newDeckSize);
+        boardState temp = new boardState(newEHand, newETop, newEBot, tempPHandSize, current.playersTop, current.playersBottom, newBoard, newDeckSize, move);
 
         return temp;
     }
-    void addNodeSub(node currentNode, GameHandler.Hand Hand,int i, bool player)
+    void addNodeSub(node currentNode, GameHandler.Hand Hand, int i, bool player)
     {
-        if (Hand.cardsInHand[i] != null)
+        if (!player)
         {
-            int howMany = 0;
-            //always play as many of the same card as possible, improvements for later
-            for (int j = 0; j < Hand.cardsInHand.Count; j++)
+            boardState prediction = makeBoardState(PlayerController.HandLocations.pHand, (moveList)Hand.cardsInHand[i].value, 1, currentNode.currentBoard, currentNode.currentBoard.gameBoard);
+            currentNode.addNode(player, currentNode, prediction, (moveList)Hand.cardsInHand[i].value);
+
+        } else
+        {
+            if (Hand.cardsInHand[i] != null)
             {
-                if(Hand.cardsInHand[j]!= null)
+                int howMany = 0;
+                //always play as many of the same card as possible
+                for (int j = 0; j < Hand.cardsInHand.Count; j++)
                 {
-                    if (Hand.cardsInHand[i].value == Hand.cardsInHand[j].value)
+                    if (Hand.cardsInHand[j] != null)
                     {
-                        howMany++;
+                        if (Hand.cardsInHand[i].value == Hand.cardsInHand[j].value)
+                        {
+                            howMany++;
+                        }
+                    }
+                }
+                boardState prediction = makeBoardState(PlayerController.HandLocations.eHand, (moveList)Hand.cardsInHand[i].value, howMany, currentNode.currentBoard, currentNode.currentBoard.gameBoard);
+                currentNode.addNode(player, currentNode, prediction, (moveList)Hand.cardsInHand[i].value);
+            }
+        }
+    }
+    GameHandler.Hand playersTurn(Pile.Board gameBoard)
+    {
+        GameHandler.Hand playersOptons = new GameHandler.Hand(null);
+        int starter = 0;
+        if (gameBoard.cardsOnTheBoard.Count == 0)
+        {
+            //Player can do any move
+            for (int i = 0; i < 15; i++)
+            {
+                if (i == 1 || i == 2)
+                {
+
+                }
+                else
+                {
+                    GameHandler.Cards tempChoice = new GameHandler.Cards();
+                    tempChoice.value = i;
+                    tempChoice.special = false;
+                    tempChoice.card = null;
+                    tempChoice.bottomCard = false;
+                    if (i == 2 || i == 3 || i == 7 || i == 8 || i == 10)
+                    {
+                        tempChoice.special = true;
+                    }
+                    playersOptons.cardsInHand.Add(tempChoice);
+                }
+            }
+        }
+        else
+        {
+            starter = gameBoard.cardsOnTheBoard[gameBoard.cardsOnTheBoard.Count - 1].value;
+            if(starter == 7)
+            {
+                //flip the checks
+                for (int i = starter; i >= 0; i--)
+                {
+                    if (i == 1 || i == 2)
+                    {
+
+                    }
+                    else
+                    {
+                        GameHandler.Cards tempChoice = new GameHandler.Cards();
+                        tempChoice.value = i;
+                        tempChoice.special = false;
+                        tempChoice.card = null;
+                        tempChoice.bottomCard = false;
+                        if (i == 2 || i == 3 || i == 7 || i == 8 || i == 10)
+                        {
+                            tempChoice.special = true;
+                        }
+                        playersOptons.cardsInHand.Add(tempChoice);
+                    }
+                }
+            } else
+            {
+                for (int i = starter; i < 15; i++)
+                {
+                    if (i == 1 || i == 2)
+                    {
+
+                    }
+                    else
+                    {
+                        GameHandler.Cards tempChoice = new GameHandler.Cards();
+                        tempChoice.value = i;
+                        tempChoice.special = false;
+                        tempChoice.card = null;
+                        tempChoice.bottomCard = false;
+                        if (i == 2 || i == 3 || i == 7 || i == 8 || i == 10)
+                        {
+                            tempChoice.special = true;
+                        }
+                        playersOptons.cardsInHand.Add(tempChoice);
                     }
                 }
             }
-            boardState prediction = makeBoardState(PlayerController.HandLocations.eHand, (moveList)Hand.cardsInHand[i].value, howMany, currentNode.currentBoard, currentNode.currentBoard.gameBoard);
-            currentNode.addNode(player, currentNode, prediction, (moveList)Hand.cardsInHand[i].value);
         }
-       
+        //can always play the special cards
+        if (starter > 0)
+        {
+            if (starter != 7)
+            {
+                GameHandler.Cards tempChoice = new GameHandler.Cards();
+                tempChoice.value = 0;
+                tempChoice.special = true;
+                tempChoice.card = null;
+                tempChoice.bottomCard = false;
+                playersOptons.cardsInHand.Add(tempChoice);
+            }
+        }
+        if (starter > 3)
+        {
+            if (starter != 7)
+            {
+                GameHandler.Cards tempChoice = new GameHandler.Cards();
+                tempChoice.value = 3;
+                tempChoice.special = true;
+                tempChoice.card = null;
+                tempChoice.bottomCard = false;
+                playersOptons.cardsInHand.Add(tempChoice);
+            }
+        }
+        if (starter > 10 || starter == 7)
+        {
+            GameHandler.Cards tempChoice = new GameHandler.Cards();
+            tempChoice.value = 10;
+            tempChoice.special = true;
+            tempChoice.card = null;
+            tempChoice.bottomCard = false;
+            playersOptons.cardsInHand.Add(tempChoice);
+        }
+        return playersOptons;
     }
-
     void addNodePre(node currentNode, GameHandler.Hand Hand, bool player)
     {
-        // there is still cards in hand 
-        for (int i = 0; i < Hand.cardsInHand.Count; i++)
+        if (!player)
         {
-            if (Hand.cardsInHand[i] != null) // cant evaluate null cards, these are cards that we have drawn but their value is unknown
+            //assume the player can play anything within the rules
+            //Make a hand with all the moves in
+            GameHandler.Hand playersOptons = playersTurn(currentNode.currentBoard.gameBoard);
+            for (int j= 0; j < playersOptons.cardsInHand.Count; j++)
             {
-                if (currentNode.currentBoard.gameBoard.cardsOnTheBoard.Count == 0)
+                addNodeSub(currentNode, playersOptons, j, true);
+            }
+            //No pick up for player as the AI will have to beat the best of the player
+        } else
+        {
+            // there is still cards in hand 
+            for (int i = 0; i < Hand.cardsInHand.Count; i++)
+            {
+                if (Hand.cardsInHand[i] != null) // cant evaluate null cards, these are cards that we have drawn but their value is unknown
                 {
-                    addNodeSub(currentNode,Hand, i, player);
-                }
-                else if (currentNode.currentBoard.gameBoard.cardsOnTheBoard[currentNode.currentBoard.gameBoard.cardsOnTheBoard.Count - 1].value == 7) // flip the check
-                {
-                    if (currentNode.currentBoard.gameBoard.cardsOnTheBoard[currentNode.currentBoard.gameBoard.cardsOnTheBoard.Count - 1].value >= Hand.cardsInHand[i].value ||
+                    if (currentNode.currentBoard.gameBoard.cardsOnTheBoard.Count == 0)
+                    {
+                        addNodeSub(currentNode, Hand, i, player);
+                    }
+                    else if (currentNode.currentBoard.gameBoard.cardsOnTheBoard[currentNode.currentBoard.gameBoard.cardsOnTheBoard.Count - 1].value == 7) // flip the check
+                    {
+                        if (currentNode.currentBoard.gameBoard.cardsOnTheBoard[currentNode.currentBoard.gameBoard.cardsOnTheBoard.Count - 1].value >= Hand.cardsInHand[i].value ||
+                            Hand.cardsInHand[i].special && Hand.cardsInHand[i].value != 7 &&
+                            Hand.cardsInHand[i].special && Hand.cardsInHand[i].value != 8)
+                        {
+                            addNodeSub(currentNode, Hand, i, player);
+                        }
+                    }
+                    else if (currentNode.currentBoard.gameBoard.cardsOnTheBoard[currentNode.currentBoard.gameBoard.cardsOnTheBoard.Count - 1].value <= Hand.cardsInHand[i].value ||
                         Hand.cardsInHand[i].special && Hand.cardsInHand[i].value != 7 &&
                         Hand.cardsInHand[i].special && Hand.cardsInHand[i].value != 8)
                     {
                         addNodeSub(currentNode, Hand, i, player);
                     }
                 }
-                else if (currentNode.currentBoard.gameBoard.cardsOnTheBoard[currentNode.currentBoard.gameBoard.cardsOnTheBoard.Count - 1].value <= Hand.cardsInHand[i].value ||
-                   Hand.cardsInHand[i].special && Hand.cardsInHand[i].value != 7 &&
-                   Hand.cardsInHand[i].special && Hand.cardsInHand[i].value != 8)
-                {
-                    addNodeSub(currentNode, Hand, i, player);
-                }
+            }
+            //Add pick up pile 
+            //boardState pickUpPrediction = makeBoardState(PlayerController.HandLocations.eHand, moveList.PickUpPile, 0, currentNode.currentBoard, currentNode.currentBoard.gameBoard);
+            //currentNode.addNode(player, currentNode, pickUpPrediction, moveList.PickUpPile);
+        }
+    }
+    void addMovesSub(node currentNode, bool OppsTurn)
+    {
+        if (!OppsTurn)
+        {
+            addNodePre(currentNode, null, OppsTurn);
+        } else
+        {
+            if (currentNode.currentBoard.currentHand.cardsInHand.Count != 0) // still cards in hand
+            {
+                addNodePre(currentNode, currentNode.currentBoard.currentHand, OppsTurn);
+            }
+            else if (currentNode.currentBoard.currentTop.cardsInHand.Count != 0)
+            {
+                //there is still cards on top
+                addNodePre(currentNode, currentNode.currentBoard.currentTop, OppsTurn);
             }
         }
-        boardState pickUpPrediction = makeBoardState(PlayerController.HandLocations.eHand, moveList.PickUpPile, 0, currentNode.currentBoard, currentNode.currentBoard.gameBoard);
-        currentNode.addNode(player, currentNode, pickUpPrediction, moveList.PickUpPile);
     }
-    bool addMovesSub(node currentNode, bool OppsTurn)
-    {
-        bool won = false;
-        if (currentNode.currentBoard.currentHand.cardsInHand.Count != 0) // still cards in hand
-        {
-            addNodePre(currentNode, currentNode.currentBoard.currentHand, OppsTurn);
-        }
-        else if (currentNode.currentBoard.currentTop.cardsInHand.Count != 0)
-        {
-            //there is still cards on top
-            addNodePre(currentNode, currentNode.currentBoard.currentTop, OppsTurn);
-        }
-        else if (currentNode.currentBoard.currentBot.cardsInHand.Count != 0)
-        {
-            //chose a random card, from 0 to count and play that card
-            //New function
 
-        }
-        else
+    void recursiveTree(node currentNode, bool OppsTurn)
+    {
+        if(currentNode.children.Count != 0)
         {
-            //no moves avaialbe so win
-            //Add a win funct that takes a bool for whether or not the player won
-            print("Enemy Wins");
-            won = true;
-        }
-        return won;
+            for (int i = 0; i < currentNode.children.Count; i++)
+            {
+                recursiveTree(currentNode.children[i], !OppsTurn);
+            }
+        } else
+        {
+            addMovesSub(currentNode, OppsTurn);
+        } 
     }
     void addAllMoves(int depth, tree gameTree, node currentLevel, bool OppsTurn)
     {
@@ -303,36 +544,14 @@ public class AI : MonoBehaviour
 
         //Then recurse and now change to add all the options for the player 
         //And again until the depth has hit the max depth 
+        OppsTurn = !OppsTurn;
         if (depth != maxDepth)
         {
-            if (currentLevel.children.Count == 0)
-            {
-                if (currentLevel.previous == null)// then we are the root node
-                {
-                    if(addMovesSub(currentLevel, OppsTurn))
-                    {
-                        depth = maxDepth - 1;
-                    }
-                    //nextLevel = currentLevel.children[0].clone(currentLevel.playersMove, currentLevel, currentLevel.currentBoard, currentLevel.moveChoice);
-                }
-                else
-                {
-                    for (int i = 0; i < currentLevel.previous.children.Count; i++)
-                    {
-                        //currentLevel.previous.children[i].currentBoard = currentLevel.previous.children[i].currentBoard;
-                        if (addMovesSub(currentLevel.previous.children[i], OppsTurn))
-                        {
-                            depth = maxDepth - 1;
-                        }
-                    }
-                }
-            }
-            depth = depth + 1;
-            if(currentLevel.children.Count == 0) // ran out of moves
-            {
+            recursiveTree(gameTree.Root, OppsTurn);
 
-            } else
-            {
+            depth = depth + 1;
+            if (currentLevel.children.Count != 0) // ran out of moves
+            { 
                 addAllMoves(depth, gameTree, currentLevel.children[0], !OppsTurn);
             }
         }
@@ -341,18 +560,17 @@ public class AI : MonoBehaviour
 
     void addEvals(node node)
     {
-        for(int i=0; i < node.children.Count; i++)
+        for (int i = 0; i < node.children.Count; i++)
         {
-            if(node.children[i].children.Count != 0)
+            if (node.children[i].children.Count != 0)
             {
                 addEvals(node.children[i]);
             }
             else
             {
                 node.children[i].value = node.children[i].currentBoard.evaluate();
-                
             }
-        }  
+        }
     }
 
     void findHighestOrLowest(node node)
@@ -361,6 +579,10 @@ public class AI : MonoBehaviour
         int highestOrLowest = 0;
         for (int i = 0; i < node.children.Count; i++)
         {
+            if (node.value == 0)
+            {
+                print("NOOOOOO");
+            }
             if (node.playersMove)
             {
                 if (node.children[highestOrLowest].value > node.children[i].value)
@@ -368,7 +590,8 @@ public class AI : MonoBehaviour
                     highestOrLowest = i;
                 }
 
-            } else
+            }
+            else
             {
                 if (node.children[highestOrLowest].value < node.children[i].value)
                 {
@@ -383,7 +606,7 @@ public class AI : MonoBehaviour
 
     void fillInTheRestOfTheTree(node node)
     {
-        for(int i = 0; i < node.children.Count; i++)
+        for (int i = 0; i < node.children.Count; i++)
         {
             if (!node.children[i].currentBoard.evaluated)
             {
@@ -425,7 +648,7 @@ public class AI : MonoBehaviour
             case moveList.Seven:
                 moveValue = 7;
                 break;
-            case moveList.Eight:    
+            case moveList.Eight:
                 moveValue = 8;
                 break;
             case moveList.Nine:
@@ -503,23 +726,25 @@ public class AI : MonoBehaviour
         if (go)
         {
             go = false;
-            if(gameController.Locations[(int)PlayerController.HandLocations.eHand].cardsInHand.Count == 0 && gameController.Locations[(int)PlayerController.HandLocations.eTop].cardsInHand.Count == 0)
+            if (gameController.Locations[(int)PlayerController.HandLocations.eHand].cardsInHand.Count == 0 && gameController.Locations[(int)PlayerController.HandLocations.eTop].cardsInHand.Count == 0)
             {
                 if (gameController.Locations[(int)PlayerController.HandLocations.eBot].cardsInHand.Count == 0)
                 {
                     print("AI WON");
+                    SceneManager.LoadScene("AIWon");
                 }
                 else
                 {
                     //chose a random card, from 0 to count and play that card
                     //New function
-                    int rnd = Random.Range(0, gameController.Locations[(int)PlayerController.HandLocations.eBot].cardsInHand.Count + 1);
+                    int rnd = Random.Range(0, gameController.Locations[(int)PlayerController.HandLocations.eBot].cardsInHand.Count);
                     List<GameHandler.Cards> Rand = new List<GameHandler.Cards>();
                     Rand.Add(gameController.Locations[(int)PlayerController.HandLocations.eBot].cardsInHand[rnd]);
                     pile.AIChoice(Rand);
                     EndTurn();
                 }
-            } else
+            }
+            else
             {
                 //Save the board state
                 currentBoardState = new boardState(
@@ -527,22 +752,32 @@ public class AI : MonoBehaviour
                     gameController.Locations[(int)PlayerController.HandLocations.eTop].clone(gameController.Locations[(int)PlayerController.HandLocations.eTop].cardsInHand),
                     gameController.Locations[(int)PlayerController.HandLocations.eBot].clone(gameController.Locations[(int)PlayerController.HandLocations.eBot].cardsInHand),
                     gameController.Locations[(int)PlayerController.HandLocations.pHand].cardsInHand.Count,
+                    gameController.Locations[(int)PlayerController.HandLocations.pTop].cardsInHand.Count,
+                    gameController.Locations[(int)PlayerController.HandLocations.pBot].cardsInHand.Count,
                     pile.gameBoard.clone(pile.gameBoard.cardsOnTheBoard),
-                    gameController.deckStorage.deck.Count
+                    gameController.deckStorage.deck.Count,
+                    moveList.empty
                     );
                 //Make a new binary tree with all the different moves possible to the player, and enemy for however long the recursive value is
                 node root = new node(false, null, currentBoardState, moveList.empty);
                 tree gameTree = new tree(root);
                 addAllMoves(0, gameTree, gameTree.Root, false);
-                //Evaluate all the different moves of the bottom level
-                addEvals(gameTree.Root);
-                //Then fill out the other moves based on the children
-                for(int i = 0; i < maxDepth; i++)
+                if(gameTree.Root.children.Count == 0)
                 {
-                    fillInTheRestOfTheTree(gameTree.Root);
+                    //No moves
+                    doMove(moveList.PickUpPile);
+                } else
+                {
+                    //Evaluate all the different moves of the bottom level
+                    addEvals(gameTree.Root);
+                    //Then fill out the other moves based on the children
+                    for (int i = 0; i < maxDepth; i++)
+                    {
+                        fillInTheRestOfTheTree(gameTree.Root);
+                    }
+                    //Chose a move, Do the move
+                    doMove(gameTree.Root.mostValuableMove);
                 }
-                //Chose a move, Do the move
-                doMove(gameTree.Root.mostValuableMove);
                 //End turn
                 EndTurn();
             }
@@ -603,12 +838,12 @@ public class AI : MonoBehaviour
         //check all the cards in your hand to see if its special and not a seven or eight
         //then if none are specail check the values for the highest card to swap
         int notSwapped = 0;
-        for(int i= 0; i < gameController.downAmmount; i++)
+        for (int i = 0; i < gameController.downAmmount; i++)
         {
             //if its special leave it alone
             if (!gameController.Locations[(int)PlayerController.HandLocations.eTop].cardsInHand[notSwapped].special ||
                 gameController.Locations[(int)PlayerController.HandLocations.eTop].cardsInHand[notSwapped].value == 7 ||
-                gameController.Locations[(int)PlayerController.HandLocations.eTop].cardsInHand[notSwapped].value == 8 
+                gameController.Locations[(int)PlayerController.HandLocations.eTop].cardsInHand[notSwapped].value == 8
             )
             {
                 int current = 0;
@@ -631,15 +866,15 @@ public class AI : MonoBehaviour
                         swapped = true;
                         break;
                     }
-                    else 
+                    else
                     {
                         //find the highest card
-                        if (gameController.Locations[(int)PlayerController.HandLocations.eHand].cardsInHand[j].value > 
+                        if (gameController.Locations[(int)PlayerController.HandLocations.eHand].cardsInHand[j].value >
                             gameController.Locations[(int)PlayerController.HandLocations.eHand].cardsInHand[current].value)
                         {
                             current = j;
                         }
-                       
+
                     }
                 }
                 if (!swapped)
