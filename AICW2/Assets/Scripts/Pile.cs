@@ -90,6 +90,7 @@ public class Pile : MonoBehaviour
             }
             gameBoard.cardsOnTheBoard.Clear();
             changeSize();
+            selected.Selected.Clear();
             gameController.endTurn();
         }
         else

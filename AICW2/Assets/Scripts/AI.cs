@@ -313,6 +313,14 @@ public class AI : MonoBehaviour
             gameController.pTurn = true;
             gameController.LockedControl();
         }
+        if (gameController.Locations[(int)PlayerController.HandLocations.eHand].cardsInHand.Count == 0 && gameController.Locations[(int)PlayerController.HandLocations.eTop].cardsInHand.Count == 0)
+        {
+            if (gameController.Locations[(int)PlayerController.HandLocations.eBot].cardsInHand.Count == 0)
+            {
+                print("AI WON");
+                SceneManager.LoadScene("AIWon");
+            }
+        }
         gameController.skipAI = false;
     }
     boardState makeBoardState(PlayerController.HandLocations hand, moveList move, int howMany, boardState current, Pile.Board gameBoard)
