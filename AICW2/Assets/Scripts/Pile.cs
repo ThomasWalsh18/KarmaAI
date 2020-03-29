@@ -368,8 +368,8 @@ public class Pile : MonoBehaviour
             {
                 for (int i = 0; i < selected.Selected.Count; i++)
                 {
-                    placeToPile(selected.Selected[i]);
                     selected.Selected[i].card.GetComponent<SpriteRenderer>().material.shader = gameController.shader1;
+                    placeToPile(selected.Selected[i]);
                 }
                 selected.Selected.Clear();
             }

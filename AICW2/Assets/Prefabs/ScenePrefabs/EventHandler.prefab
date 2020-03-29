@@ -157,6 +157,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fbfe3bd612ce934b92cd75a51dc2129, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxDepth: 3
+  maxDepth: 4
   pile: {fileID: 0}
   skipPlayer: 0

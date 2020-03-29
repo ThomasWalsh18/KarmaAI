@@ -19,8 +19,9 @@ public class AI : MonoBehaviour
         public int deckSize;
         public moveList Move;
         public bool evaluated = false;
+        public Pile pile;
 
-        public boardState(GameHandler.Hand eHand, GameHandler.Hand eTop, GameHandler.Hand eBot, int pHand, int pTop, int pBot, Pile.Board currentBoard, int deck, moveList lastMove)
+        public boardState(GameHandler.Hand eHand, GameHandler.Hand eTop, GameHandler.Hand eBot, int pHand, int pTop, int pBot, Pile.Board currentBoard, int deck, moveList lastMove, Pile currPile)
         {
             currentTop = eTop;
             currentBot = eBot;
@@ -31,55 +32,123 @@ public class AI : MonoBehaviour
             gameBoard = currentBoard;
             deckSize = deck;
             Move = lastMove;
+            pile = currPile;
         }
-        public boardState clone(GameHandler.Hand Hand, GameHandler.Hand Top, GameHandler.Hand Bot, int pHand, int pTop, int pBot, Pile.Board Board, int Deck, moveList lastMove)
+        public boardState clone(GameHandler.Hand Hand, GameHandler.Hand Top, GameHandler.Hand Bot, int pHand, int pTop, int pBot, Pile.Board Board, int Deck, moveList lastMove, Pile currPile)
         {
-            boardState temp = new boardState(Hand, Top, Bot, pHand, pTop, pBot, Board, Deck, lastMove);
+            boardState temp = new boardState(Hand, Top, Bot, pHand, pTop, pBot, Board, Deck, lastMove, currPile);
             return temp;
         }
 
         int defensive(GameHandler.Hand hand, int evalue, moveList actualMove)
         {
-            print("defence");
-            int lowestVal = int.MaxValue;
-            for (int i = 0; i < hand.cardsInHand.Count; i++)
+            //evalue the whole board and the lower the better 
+            //Multiplying by i values playing lower costed cards first
+            //Minus points for playing special cards in deffensive, but not sevens and eights
+            //Check if a special card has been played resonably (no twos on fours and so on)
+            for (int i = gameBoard.cardsOnTheBoard.Count - 1; i >= 0; i--)
             {
-                if (hand.cardsInHand[i] != null) // card we have drawn cant be evaluated
+                //Check for threes
+                if(gameBoard.cardsOnTheBoard[i].value == 3)
                 {
-                    if (hand.cardsInHand[i].value < lowestVal)
+                    //Check if we can go back one
+                    if(i + 1 > gameBoard.cardsOnTheBoard.Count)
                     {
-                        lowestVal = hand.cardsInHand[i].value;
-                    }
-                    if (hand.cardsInHand[i].special) // if we have any special cards, we get rewarded
-                    {
-                        if (hand.cardsInHand[i].value == 7 || hand.cardsInHand[i].value == 8) // but if we have the sequence ones we get punished
-                        {
-                            evalue -= (14 - hand.cardsInHand[i].value);
-                        }
-                        else
-                        {
-                            evalue += 30;
-                        }
-                    }
-                    else if (hand.cardsInHand[i].value < 11)
-                    {
-                        evalue -= (14 - hand.cardsInHand[i].value); //Punished for having higher cards in hand
-                    }
-                    else
-                    {
-                        evalue += (14 + hand.cardsInHand[i].value); // Rewarded for having lower costed cards in hand
+                        evalue -= gameBoard.cardsOnTheBoard[i + 1].value * i;
                     }
                 } else
                 {
-                    //Random cards get highly rewarded, encouraging the playing of multiple cards
-                    evalue += 10;
+                    evalue -= gameBoard.cardsOnTheBoard[i].value * i;
                 }
+                //if (gameBoard.cardsOnTheBoard[i].value >= 11)
+                //{
+                //    evalue += gameBoard.cardsOnTheBoard[i].value / 2;
+                //}
+                //if (gameBoard.cardsOnTheBoard[i].special)
+                //{
+                //    if (gameBoard.cardsOnTheBoard[i].value != 7 || gameBoard.cardsOnTheBoard[i].value != 8)
+                //    {
+                //        //Larger than any point value
+                //        temp += 15;
+                //    }
+                //    else if (gameBoard.cardsOnTheBoard[i].value == 2 || gameBoard.cardsOnTheBoard[i].value == 3)
+                //    {
+                //        //Check to see if they played a 2 / 3 on a blank board
+                //        //Check to see if the card they played a 2 / 3 on was high, or low 
+                //        if (gameBoard.cardsOnTheBoard.Count > 1 && i != 0)
+                //        {
+                //            //The 2 / 3 is on another card
+                //            if (gameBoard.cardsOnTheBoard[i - 1].value <= 11)
+                //            {
+                //                temp += 15;
+                //            }
+                //        }
+                //        else
+                //        {
+                //            //The 2 / 3 is on a blank board
+                //            temp += 30;
+                //        }
+                //        //evaluate 2's higher than threes in defensive
+                //        //if (pile.gameBoard.cardsOnTheBoard[i].value == 2)
+                //        //{
+                //        //    temp -= 7;
+                //        //} else
+                //        //{
+                //        //    temp -= 4;
+                //        //}
+                // }
+                //  }
             }
-            if((int)actualMove == lowestVal)
-            {
-                //Actually playing the lowest card in the hand
-                evalue += 15;
-            }
+            ////Look at the last card played and decide if that card is still in the defensive range
+            //if(pile.gameBoard.cardsOnTheBoard.Count > 0)
+            //{
+            //    if(pile.gameBoard.cardsOnTheBoard[pile.gameBoard.cardsOnTheBoard.Count-1].value >= 11)
+            //    {
+            //        evalue -= pile.gameBoard.cardsOnTheBoard[pile.gameBoard.cardsOnTheBoard.Count - 1].value;
+            //    }
+            //}
+
+
+            //print("defence");
+            //int lowestVal = int.MaxValue;
+            //for (int i = 0; i < hand.cardsInHand.Count; i++)
+            //{
+            //    if (hand.cardsInHand[i] != null) // card we have drawn cant be evaluated
+            //    {
+            //        if (hand.cardsInHand[i].value < lowestVal)
+            //        {
+            //            lowestVal = hand.cardsInHand[i].value;
+            //        }
+            //        if (hand.cardsInHand[i].special) // if we have any special cards, we get rewarded
+            //        {
+            //            if (hand.cardsInHand[i].value == 7 || hand.cardsInHand[i].value == 8) // but if we have the sequence ones we get punished
+            //            {
+            //                evalue -= (14 - hand.cardsInHand[i].value);
+            //            }
+            //            else
+            //            {
+            //                evalue += 30;
+            //            }
+            //        }
+            //        else if (hand.cardsInHand[i].value < 11)
+            //        {
+            //            evalue -= (14 - hand.cardsInHand[i].value); //Punished for having higher cards in hand
+            //        }
+            //        else
+            //        {
+            //            evalue += (14 + hand.cardsInHand[i].value); // Rewarded for having lower costed cards in hand
+            //        }
+            //    } else
+            //    {
+            //        //Random cards get highly rewarded, encouraging the playing of multiple cards
+            //        evalue += 10;
+            //    }
+            //}
+            //if((int)actualMove == lowestVal)
+            //{
+            //    //Actually playing the lowest card in the hand
+            //    evalue += 15;
+            //}
             return evalue;
         }
         int aggressive(GameHandler.Hand hand, int evalue, moveList actualMove)
@@ -188,8 +257,7 @@ public class AI : MonoBehaviour
             //To decide the current state the AI will look at the ammount of cards in the pile
             //And the more cards there are the less likly the AI is to be defensive
             //This is because as the pile gets larger, the more the AI wants the player to pick up
-            int rnd = Random.Range(0, 50 + Mathf.RoundToInt(gameBoard.cardsOnTheBoard.Count * 1.5f));
-            if (rnd <= 50)
+            if (pile.gameBoard.cardsOnTheBoard.Count <= 7) 
             {
                 //Defensive
                 //Values getting rid of lower costed cards, so ending the turn with lower costed cards will take points away
@@ -231,15 +299,15 @@ public class AI : MonoBehaviour
             }
 
 
-            if (currentHand.cardsInHand.Count < playersHand)
-            {
-                //If we have no cards left but the player does then we lose points
-                evaluation -= playersHand - currentHand.cardsInHand.Count;
-            } else
-            {
-                //Add the players hand to the point value, this means we value the player picking up more cards
-                evaluation += currentHand.cardsInHand.Count - playersHand;
-            }
+            //if (currentHand.cardsInHand.Count < playersHand)
+            //{
+            //    //If we have no cards left but the player does then we lose points
+            //    evaluation -= playersHand - currentHand.cardsInHand.Count;
+            //} else
+            //{
+            //    //Add the players hand to the point value, this means we value the player picking up more cards
+            //    evaluation += currentHand.cardsInHand.Count - playersHand;
+            //}
             evaluated = true;
             return evaluation;
         }
@@ -440,7 +508,7 @@ public class AI : MonoBehaviour
         GameHandler.Hand newEHand = tempHand.clone(tempHand.cardsInHand);
         GameHandler.Hand newETop = tempTop.clone(tempTop.cardsInHand);
         GameHandler.Hand newEBot = tempBot.clone(tempBot.cardsInHand);
-        boardState temp = new boardState(newEHand, newETop, newEBot, tempPHandSize, tempPTopSize, tempPBotSize, newBoard, newDeckSize, move);
+        boardState temp = new boardState(newEHand, newETop, newEBot, tempPHandSize, tempPTopSize, tempPBotSize, newBoard, newDeckSize, move, pile);
 
         return temp;
     }
@@ -643,11 +711,26 @@ public class AI : MonoBehaviour
                             addNodeSub(currentNode, Hand, i, player);
                         }
                     }
-                    else if (currentNode.currentBoard.gameBoard.cardsOnTheBoard[currentNode.currentBoard.gameBoard.cardsOnTheBoard.Count - 1].value <= Hand.cardsInHand[i].value ||
-                        Hand.cardsInHand[i].special && Hand.cardsInHand[i].value != 7 &&
-                        Hand.cardsInHand[i].special && Hand.cardsInHand[i].value != 8)
+                    else if (currentNode.currentBoard.gameBoard.cardsOnTheBoard[currentNode.currentBoard.gameBoard.cardsOnTheBoard.Count - 1].value <= Hand.cardsInHand[i].value || Hand.cardsInHand[i].special && Hand.cardsInHand[i].value != 7 && Hand.cardsInHand[i].special && Hand.cardsInHand[i].value != 8)
                     {
-                        addNodeSub(currentNode, Hand, i, player);
+                        if (currentNode.currentBoard.gameBoard.cardsOnTheBoard.Count >= 2)
+                        {
+                            if (currentNode.currentBoard.gameBoard.cardsOnTheBoard[currentNode.currentBoard.gameBoard.cardsOnTheBoard.Count - 1].value == 3)
+                            {
+                                if (currentNode.currentBoard.gameBoard.cardsOnTheBoard[currentNode.currentBoard.gameBoard.cardsOnTheBoard.Count - 2].value <= Hand.cardsInHand[i].value || Hand.cardsInHand[i].special && Hand.cardsInHand[i].value != 7 && Hand.cardsInHand[i].special && Hand.cardsInHand[i].value != 8)
+                                {
+                                    addNodeSub(currentNode, Hand, i, player);
+                                }
+                            } else
+                            {
+                                addNodeSub(currentNode, Hand, i, player);
+                            }
+
+                        }
+                        else
+                        {
+                            addNodeSub(currentNode, Hand, i, player);
+                        }
                     }
                 }
             }
@@ -715,16 +798,22 @@ public class AI : MonoBehaviour
         {
             if (node.children[i].children.Count != 0)
             {
-                if (node.moveChoice != moveList.PickUpPile)
-                {
+               // if (node.moveChoice != moveList.PickUpPile)
+                //{
                     addEvals(node.children[i]);
-                }
+                //}
             }
             else
             {
                 if(node.moveChoice != moveList.PickUpPile)
                 {
                     node.children[i].value = node.children[i].currentBoard.evaluate();
+                } else
+                {
+                    if(node.previous.children.Count == 1)
+                    {
+                        node.previous.currentBoard.evaluate();
+                    }
                 }
             }
         }
@@ -732,12 +821,6 @@ public class AI : MonoBehaviour
 
     void findHighestOrLowest(node node)
     {
-        if(node.children.Count == 2)
-        {
-            //One of them must be pick up, and we dont want to evaluate that one
-            
-        }
-
         int highestOrLowest = 0;
         for (int i = 0; i < node.children.Count; i++)
         {
@@ -764,6 +847,12 @@ public class AI : MonoBehaviour
                     node.value = node.children[highestOrLowest].value;
                     node.currentBoard.evaluated = true;
                     node.mostValuableMove = node.children[highestOrLowest].moveChoice;
+                }
+                else
+                {
+                    node.value = node.children[i].value;
+                    node.currentBoard.evaluated = true;
+                    node.mostValuableMove = node.moveChoice;
                 }
             }
         }
@@ -924,7 +1013,8 @@ public class AI : MonoBehaviour
                     gameController.Locations[(int)PlayerController.HandLocations.pBot].cardsInHand.Count,
                     pile.gameBoard.clone(pile.gameBoard.cardsOnTheBoard),
                     gameController.deckStorage.deck.Count,
-                    moveList.empty
+                    moveList.empty,
+                    pile
                     );
                 //Make a new binary tree with all the different moves possible to the player, and enemy for however long the recursive value is
                 node root = new node(false, null, currentBoardState, moveList.empty);

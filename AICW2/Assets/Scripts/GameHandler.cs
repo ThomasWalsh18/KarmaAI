@@ -135,7 +135,6 @@ public class GameHandler : MonoBehaviour
             }
         }
     }
-
     public class Hand
     {
         public Hand(GameObject space)
