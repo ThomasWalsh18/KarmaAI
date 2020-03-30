@@ -54,12 +54,12 @@ public class AI : MonoBehaviour
                     //Check if we can go back one
                     if(i + 1 > gameBoard.cardsOnTheBoard.Count)
                     {
-                        evalue -= gameBoard.cardsOnTheBoard[i + 1].value * i;
+                        evalue -= gameBoard.cardsOnTheBoard[i + 1].value * (i + 1);
                     }
                 } else
                 {
-                    evalue -= gameBoard.cardsOnTheBoard[i].value * i;
-                }
+                    evalue -= gameBoard.cardsOnTheBoard[i].value * (i + 1);
+        }
                 //if (gameBoard.cardsOnTheBoard[i].value >= 11)
                 //{
                 //    evalue += gameBoard.cardsOnTheBoard[i].value / 2;
@@ -848,9 +848,12 @@ public class AI : MonoBehaviour
                     node.currentBoard.evaluated = true;
                     node.mostValuableMove = node.children[highestOrLowest].moveChoice;
                 }
-                else
+            }
+            else
+            {
+                if(node.children.Count == 1)
                 {
-                    node.value = node.children[i].value;
+                    node.value = node.children[i].value -1000;
                     node.currentBoard.evaluated = true;
                     node.mostValuableMove = node.moveChoice;
                 }
