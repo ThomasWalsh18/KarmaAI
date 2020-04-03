@@ -49,265 +49,66 @@ public class AI : MonoBehaviour
             for (int i = gameBoard.cardsOnTheBoard.Count - 1; i >= 0; i--)
             {
                 //Check for threes
-                if(gameBoard.cardsOnTheBoard[i].value == 3)
+                if (gameBoard.cardsOnTheBoard[i].value == 3)
                 {
                     //Check if we can go back one
-                    if(i + 1 > gameBoard.cardsOnTheBoard.Count)
+                    if (i + 1 > gameBoard.cardsOnTheBoard.Count)
                     {
                         evalue -= gameBoard.cardsOnTheBoard[i + 1].value * (i + 1);
-                    }
-                } else
-                {
-                    evalue -= gameBoard.cardsOnTheBoard[i].value * (i + 1);
-        }
-                //if (gameBoard.cardsOnTheBoard[i].value >= 11)
-                //{
-                //    evalue += gameBoard.cardsOnTheBoard[i].value / 2;
-                //}
-                //if (gameBoard.cardsOnTheBoard[i].special)
-                //{
-                //    if (gameBoard.cardsOnTheBoard[i].value != 7 || gameBoard.cardsOnTheBoard[i].value != 8)
-                //    {
-                //        //Larger than any point value
-                //        temp += 15;
-                //    }
-                //    else if (gameBoard.cardsOnTheBoard[i].value == 2 || gameBoard.cardsOnTheBoard[i].value == 3)
-                //    {
-                //        //Check to see if they played a 2 / 3 on a blank board
-                //        //Check to see if the card they played a 2 / 3 on was high, or low 
-                //        if (gameBoard.cardsOnTheBoard.Count > 1 && i != 0)
-                //        {
-                //            //The 2 / 3 is on another card
-                //            if (gameBoard.cardsOnTheBoard[i - 1].value <= 11)
-                //            {
-                //                temp += 15;
-                //            }
-                //        }
-                //        else
-                //        {
-                //            //The 2 / 3 is on a blank board
-                //            temp += 30;
-                //        }
-                //        //evaluate 2's higher than threes in defensive
-                //        //if (pile.gameBoard.cardsOnTheBoard[i].value == 2)
-                //        //{
-                //        //    temp -= 7;
-                //        //} else
-                //        //{
-                //        //    temp -= 4;
-                //        //}
-                // }
-                //  }
-            }
-            ////Look at the last card played and decide if that card is still in the defensive range
-            //if(pile.gameBoard.cardsOnTheBoard.Count > 0)
-            //{
-            //    if(pile.gameBoard.cardsOnTheBoard[pile.gameBoard.cardsOnTheBoard.Count-1].value >= 11)
-            //    {
-            //        evalue -= pile.gameBoard.cardsOnTheBoard[pile.gameBoard.cardsOnTheBoard.Count - 1].value;
-            //    }
-            //}
-
-
-            //print("defence");
-            //int lowestVal = int.MaxValue;
-            //for (int i = 0; i < hand.cardsInHand.Count; i++)
-            //{
-            //    if (hand.cardsInHand[i] != null) // card we have drawn cant be evaluated
-            //    {
-            //        if (hand.cardsInHand[i].value < lowestVal)
-            //        {
-            //            lowestVal = hand.cardsInHand[i].value;
-            //        }
-            //        if (hand.cardsInHand[i].special) // if we have any special cards, we get rewarded
-            //        {
-            //            if (hand.cardsInHand[i].value == 7 || hand.cardsInHand[i].value == 8) // but if we have the sequence ones we get punished
-            //            {
-            //                evalue -= (14 - hand.cardsInHand[i].value);
-            //            }
-            //            else
-            //            {
-            //                evalue += 30;
-            //            }
-            //        }
-            //        else if (hand.cardsInHand[i].value < 11)
-            //        {
-            //            evalue -= (14 - hand.cardsInHand[i].value); //Punished for having higher cards in hand
-            //        }
-            //        else
-            //        {
-            //            evalue += (14 + hand.cardsInHand[i].value); // Rewarded for having lower costed cards in hand
-            //        }
-            //    } else
-            //    {
-            //        //Random cards get highly rewarded, encouraging the playing of multiple cards
-            //        evalue += 10;
-            //    }
-            //}
-            //if((int)actualMove == lowestVal)
-            //{
-            //    //Actually playing the lowest card in the hand
-            //    evalue += 15;
-            //}
-            return evalue;
-        }
-        int aggressive(GameHandler.Hand hand, int evalue, moveList actualMove)
-        {
-            print("Aggro");
-            //How many moves did i cut off
-            //The less moves availabe will mean more points
-            int movesAvailalbe = 0;
-            int starter = 0;
-            if (gameBoard.cardsOnTheBoard.Count == 0)
-            {
-                //Player can do any move
-                for (int i = 0; i < 15; i++)
-                {
-                    if (i == 1 || i == 2)
-                    {
-
-                    }
-                    else
-                    {
-                        movesAvailalbe++;
-                    }
-                }
-            }
-            else
-            {
-                starter = gameBoard.cardsOnTheBoard[gameBoard.cardsOnTheBoard.Count - 1].value;
-                if (starter == 7)
-                {
-                    //flip the checks
-                    for (int i = starter; i >= 0; i--)
-                    {
-                        if (i == 1 || i == 2)
-                        {
-
-                        }
-                        else
-                        {
-                            movesAvailalbe++;
-                        }
                     }
                 }
                 else
                 {
-                    for (int i = starter; i < 15; i++)
-                    {
-                        if (i == 1 || i == 2)
-                        {
+                    evalue -= gameBoard.cardsOnTheBoard[i].value * (i + 1);
+                }
+                if(i != 0)
+                {
+                    //look at the last two cards
 
-                        }
-                        else
-                        {
-                            movesAvailalbe++;
-                        }
-                    }
-                }
-            }
-            if (starter > 0)
-            {
-                if (starter != 7)
-                {
-                    movesAvailalbe++;
-                }
-            }
-            if (starter > 3)
-            {
-                if (starter != 7)
-                {
-                    movesAvailalbe++;
-                }
-            }
-            if (starter > 10 || starter == 7)
-            {
-                movesAvailalbe++;
-            }
-            //14 possible moves minus all the moves still avialable
-            evalue += 14 - movesAvailalbe;
-            
-            //Uses this to evaluate playing special cards on high costed cards and punishes for low costed cards
-            if(gameBoard.cardsOnTheBoard.Count > 1)
-            {
-                if(gameBoard.cardsOnTheBoard[gameBoard.cardsOnTheBoard.Count-1].special && !gameBoard.cardsOnTheBoard[gameBoard.cardsOnTheBoard.Count - 2].special)
-                {
-                    if(gameBoard.cardsOnTheBoard[gameBoard.cardsOnTheBoard.Count-2].value > 11)
+                    if(gameBoard.cardsOnTheBoard[i-1].value == 2 && gameBoard.cardsOnTheBoard[i].value == 3)
                     {
-                        evalue += 10;
-                    } else
-                    {
-                        evalue -= 10;
-                    }
-                    //takes points away for playing a two in aggresive mode 
-                    if(gameBoard.cardsOnTheBoard[gameBoard.cardsOnTheBoard.Count - 1].value == 0){
-                        evalue -= 15;
+                        //devalue playing a 3 on nothing
+                        evalue -= 15; 
                     }
                 }
             }
 
             return evalue;
         }
-
         public int evaluate()
         {
             int evaluation = 0;
             //Evaluate the current board state to give the node its value
             //Using a very small finate state machine to decide if the AI should be defensive or aggressive
             //To decide the current state the AI will look at the ammount of cards in the pile
-            //And the more cards there are the less likly the AI is to be defensive
-            //This is because as the pile gets larger, the more the AI wants the player to pick up
-            if (pile.gameBoard.cardsOnTheBoard.Count <= 7) 
+
+          
+            //Values getting rid of lower costed cards, so ending the turn with lower costed cards will take points away
+            //But ending the turn with higher costed points will earn more points
+            //if(gameBoard.cardsOnTheBoard)
+            if (currentHand.cardsInHand.Count != 0)
             {
-                //Defensive
-                //Values getting rid of lower costed cards, so ending the turn with lower costed cards will take points away
-                //But ending the turn with higher costed points will earn more points
-                //if(gameBoard.cardsOnTheBoard)
-                if (currentHand.cardsInHand.Count != 0)
-                {
-                    evaluation = defensive(currentHand, evaluation, Move);
-                }
-                else if (currentTop.cardsInHand.Count != 0)
-                {
-                    evaluation = defensive(currentTop, evaluation, Move);
-                }
-                else
-                {
-                    //We are on the bottom and any move is random so cant evaluate
-                }
+                evaluation = defensive(currentHand, evaluation, Move);
+            }
+            else if (currentTop.cardsInHand.Count != 0)
+            {
+                evaluation = defensive(currentTop, evaluation, Move);
             }
             else
             {
-                //Aggressive
-                //Values getting rid of higher costed cards
-                //Value playing a big number gap between the last two cards for example playing a jack on a 5 will get 6 points
-                //However if the AI doesnt have something to back that up with or any null cards (as these can be anything) points will be taken away 
-
-                
-                if (currentHand.cardsInHand.Count != 0)
-                {
-                    evaluation = aggressive(currentHand, evaluation, Move);
-                }
-                else if (currentTop.cardsInHand.Count != 0)
-                {
-                    evaluation = aggressive(currentTop, evaluation, Move);
-                }
-                else
-                {
-                    //We are on the bottom and any move is random so cant evaluate
-                }
+                //We are on the bottom and any move is random so cant evaluate
             }
-
-
-            //if (currentHand.cardsInHand.Count < playersHand)
-            //{
-            //    //If we have no cards left but the player does then we lose points
-            //    evaluation -= playersHand - currentHand.cardsInHand.Count;
-            //} else
-            //{
-            //    //Add the players hand to the point value, this means we value the player picking up more cards
-            //    evaluation += currentHand.cardsInHand.Count - playersHand;
-            //}
+            
+           
+            if (currentHand.cardsInHand.Count < playersHand)
+            {
+                //If we have no cards left but the player does then we lose points
+                evaluation -= playersHand - currentHand.cardsInHand.Count;
+            } else
+            {
+                //Add the players hand to the point value, this means we value the player picking up more cards
+                evaluation += currentHand.cardsInHand.Count - playersHand;
+            }
             evaluated = true;
             return evaluation;
         }
@@ -543,135 +344,57 @@ public class AI : MonoBehaviour
     GameHandler.Hand playersTurn(Pile.Board gameBoard, int pHand, int pTop)
     {
         GameHandler.Hand playersOptons = new GameHandler.Hand(null);
-        if(pHand != 0 || pTop == 0)
-        {// its in their hand so they can play anything
-            int starter = 0;
-            if (gameBoard.cardsOnTheBoard.Count == 0)
-            {
-                //Player can do any move
-                for (int i = 0; i < 15; i++)
-                {
-                    if (i == 1 || i == 2)
-                    {
 
-                    }
-                    else
-                    {
-                        GameHandler.Cards tempChoice = new GameHandler.Cards();
-                        tempChoice.value = i;
-                        tempChoice.special = false;
-                        tempChoice.card = null;
-                        tempChoice.bottomCard = false;
-                        tempChoice.handler = null;
-                        tempChoice.Startvalue = i;
-                        if (i == 2 || i == 3 || i == 7 || i == 8 || i == 10)
-                        {
-                            tempChoice.special = true;
-                        }
-                        playersOptons.cardsInHand.Add(tempChoice);
-                    }
-                }
-            }
-            else
-            {
-                starter = gameBoard.cardsOnTheBoard[gameBoard.cardsOnTheBoard.Count - 1].value;
-                if(starter == 7)
-                {
-                    //flip the checks
-                    for (int i = starter; i >= 0; i--)
-                    {
-                        if (i == 1 || i == 2)
-                        {
-
-                        }
-                        else
-                        {
-                            GameHandler.Cards tempChoice = new GameHandler.Cards();
-                            tempChoice.value = i;
-                            tempChoice.special = false;
-                            tempChoice.card = null;
-                            tempChoice.bottomCard = false;
-                            tempChoice.handler = null;
-                            tempChoice.Startvalue = i;
-                            if (i == 2 || i == 3 || i == 7 || i == 8 || i == 10)
-                            {
-                                tempChoice.special = true;
-                            }
-                            playersOptons.cardsInHand.Add(tempChoice);
-                        }
-                    }
-                } else
-                {
-                    for (int i = starter; i < 15; i++)
-                    {
-                        if (i == 1 || i == 2)
-                        {
-
-                        }
-                        else
-                        {
-                            GameHandler.Cards tempChoice = new GameHandler.Cards();
-                            tempChoice.value = i;
-                            tempChoice.special = false;
-                            tempChoice.card = null;
-                            tempChoice.bottomCard = false;
-                            tempChoice.handler = null;
-                            tempChoice.Startvalue = i;
-                            if (i == 2 || i == 3 || i == 7 || i == 8 || i == 10)
-                            {
-                                tempChoice.special = true;
-                            }
-                            playersOptons.cardsInHand.Add(tempChoice);
-                        }
-                    }
-                }
-            }
-            //can always play the special cards
-            if (starter > 0)
-            {
-                if (starter != 7)
-                {
-                    GameHandler.Cards tempChoice = new GameHandler.Cards();
-                    tempChoice.value = 0;
-                    tempChoice.special = true;
-                    tempChoice.card = null;
-                    tempChoice.bottomCard = false;
-                    tempChoice.handler = null;
-                    tempChoice.Startvalue = 0;
-                    playersOptons.cardsInHand.Add(tempChoice);
-                }
-            }
-            if (starter > 3)
-            {
-                if (starter != 7)
-                {
-                    GameHandler.Cards tempChoice = new GameHandler.Cards();
-                    tempChoice.value = 3;
-                    tempChoice.special = true;
-                    tempChoice.card = null;
-                    tempChoice.bottomCard = false;
-                    tempChoice.handler = null;
-                    tempChoice.Startvalue = 3;
-                    playersOptons.cardsInHand.Add(tempChoice);
-                }
-            }
-            if (starter > 10 || starter == 7)
+        if (pHand != 0)
+        {
+            for (int i = 0; i < gameController.Locations[(int)PlayerController.HandLocations.pHand].cardsInHand.Count; i++)
             {
                 GameHandler.Cards tempChoice = new GameHandler.Cards();
-                tempChoice.value = 10;
-                tempChoice.special = true;
+                tempChoice.value = gameController.Locations[(int)PlayerController.HandLocations.pHand].cardsInHand[i].value;
+                tempChoice.special = gameController.Locations[(int)PlayerController.HandLocations.pHand].cardsInHand[i].special;
                 tempChoice.card = null;
                 tempChoice.bottomCard = false;
                 tempChoice.handler = null;
-                tempChoice.Startvalue = 10;
+                tempChoice.Startvalue = gameController.Locations[(int)PlayerController.HandLocations.pHand].cardsInHand[i].value;
                 playersOptons.cardsInHand.Add(tempChoice);
             }
-        }
-        else if (pTop != 0)
-        { //We can see the cards that they are going to play
+        } else if (pHand == 0 && pTop != 0)
+        {
             for(int i = 0; i < gameController.Locations[(int)PlayerController.HandLocations.pTop].cardsInHand.Count; i++)
             {
-                playersOptons.cardsInHand.Add(gameController.Locations[(int)PlayerController.HandLocations.pTop].cardsInHand[i]);
+                GameHandler.Cards tempChoice = new GameHandler.Cards();
+                tempChoice.value = gameController.Locations[(int)PlayerController.HandLocations.pTop].cardsInHand[i].value;
+                tempChoice.special = gameController.Locations[(int)PlayerController.HandLocations.pTop].cardsInHand[i].special;
+                tempChoice.card = null;
+                tempChoice.bottomCard = false;
+                tempChoice.handler = null;
+                tempChoice.Startvalue = gameController.Locations[(int)PlayerController.HandLocations.pTop].cardsInHand[i].value;
+                playersOptons.cardsInHand.Add(tempChoice);
+            }
+        } else if (pTop == 0 || pHand == 0)
+        {
+            //Player can do any move
+            for (int i = 0; i < 15; i++)
+            {
+                if (i == 1 || i == 2)
+                {
+
+                }
+                else
+                {
+                    GameHandler.Cards tempChoice = new GameHandler.Cards();
+                    tempChoice.value = i;
+                    tempChoice.special = false;
+                    tempChoice.card = null;
+                    tempChoice.bottomCard = false;
+                    tempChoice.handler = null;
+                    tempChoice.Startvalue = i;
+                    if (i == 2 || i == 3 || i == 7 || i == 8 || i == 10)
+                    {
+                        tempChoice.special = true;
+                    }
+                    playersOptons.cardsInHand.Add(tempChoice);
+                }
             }
         }
 
@@ -861,13 +584,13 @@ public class AI : MonoBehaviour
         }
     }
 
-    void fillInTheRestOfTheTree(node node)
+    void minMax(node node)
     {
         for (int i = 0; i < node.children.Count; i++)
         {
             if (!node.children[i].currentBoard.evaluated)
             {
-                fillInTheRestOfTheTree(node.children[i]);
+                minMax(node.children[i]);
             }
             else
             {
@@ -1034,7 +757,7 @@ public class AI : MonoBehaviour
                     //Then fill out the other moves based on the children
                     for (int i = 0; i < maxDepth; i++)
                     {
-                        fillInTheRestOfTheTree(gameTree.Root);
+                        minMax(gameTree.Root);
                     }
                     //Chose a move, Do the move
                     doMove(gameTree.Root.mostValuableMove);
