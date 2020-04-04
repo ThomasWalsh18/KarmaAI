@@ -61,15 +61,10 @@ public class AI : MonoBehaviour
                 {
                     evalue -= gameBoard.cardsOnTheBoard[i].value * (i + 1);
                 }
-                if(i != 0)
+                //Better position if you have special cards in hand
+                if (gameBoard.cardsOnTheBoard[i].special)
                 {
-                    //look at the last two cards
-
-                    if(gameBoard.cardsOnTheBoard[i-1].value == 2 && gameBoard.cardsOnTheBoard[i].value == 3)
-                    {
-                        //devalue playing a 3 on nothing
-                        evalue -= 15; 
-                    }
+                    evalue += 15;
                 }
             }
 
@@ -164,8 +159,10 @@ public class AI : MonoBehaviour
     bool started = false;
     bool go = false;
 
+    Visualization visual;
     void Start()
     {
+        visual = GetComponent<Visualization>();
         gameController = GetComponent<GameHandler>();
         pile = GameObject.FindGameObjectWithTag("Board").GetComponent<Pile>();
     }
@@ -780,11 +777,19 @@ public class AI : MonoBehaviour
 
     void swap(GameHandler.Cards cardOne, GameHandler.Cards cardTwo, int start, int finish)
     {
+        if(start == (int)PlayerController.HandLocations.eTop)
+        {
+            cardOne.card.GetComponent<CardFlip>().flipped = visual.flipped;
+        }
+        if(finish == (int)PlayerController.HandLocations.eHand)
+        {
+            cardTwo.card.GetComponent<CardFlip>().flipped = false;
+        }
+
         //Change locations 
         cardOne.location = finish;
         cardTwo.location = start;
         //Update hands
-
         gameController.Locations[start].cardsInHand.Remove(cardOne);
         gameController.Locations[start].cardsInHand.Add(cardTwo);
         gameController.Locations[finish].cardsInHand.Add(cardOne);
@@ -842,6 +847,7 @@ public class AI : MonoBehaviour
                     {
 
                         print("Swap" + gameController.Locations[(int)PlayerController.HandLocations.eHand].cardsInHand[j].value + " For" + gameController.Locations[(int)PlayerController.HandLocations.eTop].cardsInHand[notSwapped].value);
+
                         swap(gameController.Locations[(int)PlayerController.HandLocations.eTop].cardsInHand[notSwapped],
                              gameController.Locations[(int)PlayerController.HandLocations.eHand].cardsInHand[j],
                              (int)PlayerController.HandLocations.eTop,

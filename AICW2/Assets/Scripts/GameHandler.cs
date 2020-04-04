@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 public class GameHandler : MonoBehaviour
 {
     public Deck deckStorage;
-
+    public Visualization visual;
     public int drawAmmount = 3;
     public int downAmmount = 3;
 
@@ -239,6 +239,7 @@ public class GameHandler : MonoBehaviour
             }
             while (Locations[(int)PlayerController.HandLocations.eHand].cardsInHand.Count < downAmmount && deckStorage.deck.Count != 0)
             {
+                deckStorage.deck[0].card.GetComponent<CardFlip>().flipped = visual.flipped;
                 DrawToHand(deckStorage.deck[0], Locations[(int)PlayerController.HandLocations.eHand], (int)PlayerController.HandLocations.eHand);
             }
         } else // the deck is empty
@@ -389,6 +390,7 @@ public class GameHandler : MonoBehaviour
     public void Ready()
     {
         controller.GetComponent<AI>().startGame();
+      
         for (int i = 0; i < 2; i++)
         {
             for(int j = 0; j < downAmmount; j++)
@@ -422,7 +424,7 @@ public class GameHandler : MonoBehaviour
     public void Start()
     {
         skipAI = false;
-
+        visual = GetComponent<Visualization>();
         shader1 = Shader.Find("Sprites/Default");
 
         controller = gameObject.GetComponent<PlayerController>();

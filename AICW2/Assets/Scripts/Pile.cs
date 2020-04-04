@@ -10,6 +10,7 @@ public class Pile : MonoBehaviour
     public GameObject Text;
     public List<GameHandler.Cards> aiSelected = new List<GameHandler.Cards>();
     public List<int> SequenceSpecial = new List<int>();
+    public Visualization viusal;
     public class Board
     {
         public Board(GameObject space, GameObject text)
@@ -46,7 +47,8 @@ public class Pile : MonoBehaviour
     }
     public Board gameBoard;
     void Start()
-    { 
+    {
+        viusal = GameObject.FindGameObjectWithTag("Controller").GetComponent<Visualization>();
         gameBoard = new Board(gameObject, Text);
         selected = GameObject.FindGameObjectWithTag("Controller").GetComponent<PlayerController>();
         gameController = GameObject.FindGameObjectWithTag("Controller").GetComponent<GameHandler>();
@@ -66,6 +68,7 @@ public class Pile : MonoBehaviour
         for(int i =0; i < gameController.Locations[(int)PlayerController.HandLocations.eHand].cardsInHand.Count; i++)
         {
             gameController.Locations[(int)PlayerController.HandLocations.eHand].cardsInHand[i].card.GetComponent<CardFlip>().locked = true;
+            gameController.Locations[(int)PlayerController.HandLocations.eHand].cardsInHand[i].card.GetComponent<CardFlip>().flipped = viusal.flipped;
         }
         gameBoard.cardsOnTheBoard.Clear();
         changeSize();
@@ -350,10 +353,12 @@ public class Pile : MonoBehaviour
     public void AIChoice(List<GameHandler.Cards> Selected)
     {
         aiSelected = Selected;
+       
         if (Selected.Count != 0)
         {
             for (int i = 0; i < Selected.Count; i++)
             {
+                Selected[i].card.GetComponent<CardFlip>().flipped = false;
                 placeToPile(Selected[i]);
             }
             Selected.Clear();
