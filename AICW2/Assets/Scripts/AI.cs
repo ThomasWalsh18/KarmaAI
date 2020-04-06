@@ -690,7 +690,7 @@ public class AI : MonoBehaviour
     {
         if (!started)
         {
-            print("Thinkning");
+            visual.changeAIText("Thinking");
             yield return new WaitForSeconds(0.5f);
             go = true;
             started = false;
@@ -747,6 +747,7 @@ public class AI : MonoBehaviour
                 {
                     //No moves
                     doMove(moveList.PickUpPile);
+                    visual.changeAIText("Can't go");
                 } else
                 {
                     //Evaluate all the different moves of the bottom level
@@ -758,6 +759,7 @@ public class AI : MonoBehaviour
                     }
                     //Chose a move, Do the move
                     doMove(gameTree.Root.mostValuableMove);
+                    visual.MoveThoughts(gameTree);
                 }
                 //End turn
                 EndTurn();
@@ -902,7 +904,7 @@ public class AI : MonoBehaviour
             if (gameController.skipAI)
             {
                 //Pass the turn back
-                print("Damn, you skipped me");
+                visual.changeAIText("Damn, you skipped me");
                 EndTurn();
             }
             else

@@ -9,10 +9,9 @@ ScriptsOnlyBuild:
     - SceneSwapper
     - SpriteOutline
     - Storage
+    - Visualization
     Unity.2D.Tilemap.Editor.dll:
     - UnityEditor.Tilemaps.GridPaintingState
-    - UnityEditor.Tilemaps.GridPaletteBrushes
-    - UnityEditor.Tilemaps.GridPalettes
     - UnityEditor.Tilemaps.SceneViewGridManager
     - UnityEditor.Tilemaps.TileDragAndDropManager
     Unity.Rider.Editor.dll:
@@ -65,11 +64,11 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 11792}
     - Class: 114
-      Script: {instanceID: 12202}
+      Script: {instanceID: 12204}
     - Class: 114
-      Script: {instanceID: 12714}
+      Script: {instanceID: 12716}
     - Class: 114
-      Script: {instanceID: 13100}
+      Script: {instanceID: 13102}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -114,11 +113,11 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 11792}
     - Class: 114
-      Script: {instanceID: 12202}
+      Script: {instanceID: 12204}
     - Class: 114
-      Script: {instanceID: 12714}
+      Script: {instanceID: 12716}
     - Class: 114
-      Script: {instanceID: 13100}
+      Script: {instanceID: 13102}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -171,21 +170,23 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 11920}
     - Class: 114
-      Script: {instanceID: 12202}
+      Script: {instanceID: 12004}
     - Class: 114
-      Script: {instanceID: 12250}
+      Script: {instanceID: 12204}
     - Class: 114
-      Script: {instanceID: 12432}
+      Script: {instanceID: 12252}
     - Class: 114
-      Script: {instanceID: 12496}
+      Script: {instanceID: 12434}
     - Class: 114
-      Script: {instanceID: 12714}
+      Script: {instanceID: 12498}
     - Class: 114
-      Script: {instanceID: 12816}
+      Script: {instanceID: 12716}
     - Class: 114
-      Script: {instanceID: 12884}
+      Script: {instanceID: 12818}
     - Class: 114
-      Script: {instanceID: 13100}
+      Script: {instanceID: 12886}
+    - Class: 114
+      Script: {instanceID: 13102}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -232,11 +233,11 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 11792}
     - Class: 114
-      Script: {instanceID: 12202}
+      Script: {instanceID: 12204}
     - Class: 114
-      Script: {instanceID: 12714}
+      Script: {instanceID: 12716}
     - Class: 114
-      Script: {instanceID: 13100}
+      Script: {instanceID: 13102}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -286,7 +287,7 @@ ScriptsOnlyBuild:
     className: TMP_ScrollbarEventHandler
   - hash:
       serializedVersion: 2
-      Hash: 07f1e28deedd1551439db34b7be7765f
+      Hash: 6abcb2e24c7b9c91ddf33570f8a8b38d
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: GameHandler
@@ -382,7 +383,7 @@ ScriptsOnlyBuild:
     className: PhysicsRaycaster
   - hash:
       serializedVersion: 2
-      Hash: 3f116a48171d645a1d0015c28cfc6d19
+      Hash: f59276c0971a48cb603e33b21f47a33c
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: Pile
@@ -476,6 +477,12 @@ ScriptsOnlyBuild:
     assemblyName: UnityEngine.UI.dll
     namespaceName: UnityEngine.UI
     className: ScrollRect
+  - hash:
+      serializedVersion: 2
+      Hash: 878f9e15b4f00680a095212e42c1f8e5
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: Visualization
   - hash:
       serializedVersion: 2
       Hash: c3d3430df9e3ea95e3e3d587961390fb
@@ -722,12 +729,6 @@ ScriptsOnlyBuild:
     assemblyName: Unity.Timeline.dll
     namespaceName: UnityEngine.Timeline
     className: PlayableTrack
-  - hash:
-      serializedVersion: 2
-      Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
-    assemblyName: Assembly-CSharp.dll
-    namespaceName: 
-    className: Visualization
   platform: 5
   scenePathNames:
   - Assets/Scenes/Instructions.unity

@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3564574681424326133}
   - component: {fileID: 3564574680845811893}
   - component: {fileID: 5102811041005005510}
+  - component: {fileID: 6716420785320142475}
   m_Layer: 0
   m_Name: EventHandler
   m_TagString: Controller
@@ -111,6 +112,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 570a08312224b6d4990c6d75fa9ec79e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  visual: {fileID: 0}
   drawAmmount: 0
   downAmmount: 3
   skipAI: 0
@@ -157,6 +159,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fbfe3bd612ce934b92cd75a51dc2129, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxDepth: 4
+  maxDepth: 5
   pile: {fileID: 0}
   skipPlayer: 0
+--- !u!114 &6716420785320142475
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3564574681424326138}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b49358c67a7b9dd4ebf663a95d78421c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  flipped: 0
+  hide: {fileID: 0}
+  turnIndicator: {fileID: 0}
+  textTurn: {fileID: 0}
+  thoughts: {fileID: 0}
